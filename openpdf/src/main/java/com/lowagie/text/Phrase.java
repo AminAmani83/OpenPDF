@@ -55,6 +55,7 @@ import java.util.Collection;
 import com.lowagie.text.error_messages.MessageLocalization;
 
 import com.lowagie.text.pdf.HyphenationEvent;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * A <CODE>Phrase</CODE> is a series of <CODE>Chunk</CODE>s.
@@ -585,4 +586,15 @@ public class Phrase extends ArrayList<Element> implements TextElementArray {
         return p;
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
+        // we cast the element to a phrase and set the leading of the document
+        pdfDocument.setLeading(getLeading());
+        // we process the element
+        process(pdfDocument);
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+
+        return true;
+    }
 }

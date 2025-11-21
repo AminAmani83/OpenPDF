@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import com.lowagie.text.error_messages.MessageLocalization;
 
+import com.lowagie.text.pdf.PdfDocument;
 import com.lowagie.text.pdf.PdfPCell;
 
 /**
@@ -879,5 +880,10 @@ public class Cell extends TableRectangle implements TextElementArray, WithHorizo
         }
 
         verticalAlignment = alignment.getId();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        return false;
     }
 }

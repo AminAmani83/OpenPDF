@@ -50,9 +50,8 @@ package com.lowagie.text;
 
 import com.lowagie.text.alignment.HorizontalAlignment;
 import com.lowagie.text.error_messages.MessageLocalization;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfPTableEvent;
+import com.lowagie.text.pdf.*;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -357,5 +356,20 @@ public class SimpleTable extends Rectangle implements PdfPTableEvent, TextElemen
         catch(BadElementException e) {
             throw new ExceptionConverter(e);
         }
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        PdfPTable ptable = createPdfPTable();
+        if (ptable.size() <= ptable.getHeaderRows())
+            return true; // nothing to do
+
+        // before every table, we add a new line and flush all lines
+        pdfDocument.ensureNewLine();
+        pdfDocument.flushLines();
+        pdfDocument.addPTable(ptable);
+        pdfDocument.setPageEmpty(false);
+
+        return true;
     }
 }

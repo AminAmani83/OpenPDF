@@ -49,6 +49,9 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfAction;
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -303,4 +306,19 @@ public class Anchor extends Phrase {
         }
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
+        String url = getReference();
+        pdfDocument.setLeading(getLeading());
+        if (url != null) {
+            pdfDocument.setAnchorAction(new PdfAction(url));
+        }
+        // we process the element
+        process(pdfDocument);
+        pdfDocument.setAnchorAction(null);
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+
+        return true;
+    }
 }

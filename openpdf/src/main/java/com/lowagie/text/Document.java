@@ -519,7 +519,7 @@ public class Document implements AutoCloseable, DocListener {
     
     public boolean addTitle(String title) {
         try {
-            return add(new Meta(Element.TITLE, title));
+            return add(new MetaTitle(title));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }
@@ -535,7 +535,7 @@ public class Document implements AutoCloseable, DocListener {
     
     public boolean addSubject(String subject) {
         try {
-            return add(new Meta(Element.SUBJECT, subject));
+            return add(new MetaSubject(subject));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }
@@ -551,7 +551,7 @@ public class Document implements AutoCloseable, DocListener {
     
     public boolean addKeywords(String keywords) {
         try {
-            return add(new Meta(Element.KEYWORDS, keywords));
+            return add(new MetaKeywords(keywords));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }
@@ -567,7 +567,7 @@ public class Document implements AutoCloseable, DocListener {
     
     public boolean addAuthor(String author) {
         try {
-            return add(new Meta(Element.AUTHOR, author));
+            return add(new MetaAuthor(author));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }
@@ -583,7 +583,7 @@ public class Document implements AutoCloseable, DocListener {
     
     public boolean addCreator(String creator) {
         try {
-            return add(new Meta(Element.CREATOR, creator));
+            return add(new MetaCreator(creator));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }
@@ -606,7 +606,7 @@ public class Document implements AutoCloseable, DocListener {
      * @return <CODE>true</CODE> if successful, <CODE>false</CODE> otherwise
      */
     public boolean addProducer(final String producer) {
-        return add(new Meta(Element.PRODUCER, producer));
+        return add(new MetaProducer(producer));
     }
     
     /**
@@ -620,7 +620,7 @@ public class Document implements AutoCloseable, DocListener {
             /* bugfix by 'taqua' (Thomas) */
             final SimpleDateFormat sdf = new SimpleDateFormat(
                     "EEE MMM dd HH:mm:ss zzz yyyy");
-            return add(new Meta(Element.CREATIONDATE, sdf.format(new Date())));
+            return add(new MetaCreationDate(sdf.format(new Date())));
         } catch (DocumentException de) {
             throw new ExceptionConverter(de);
         }

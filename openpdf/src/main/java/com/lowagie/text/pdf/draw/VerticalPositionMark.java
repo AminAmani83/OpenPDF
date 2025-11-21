@@ -56,6 +56,7 @@ import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.ElementListener;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * Helper class implementing the DrawInterface. Can be used to add
@@ -172,5 +173,13 @@ public class VerticalPositionMark implements DrawInterface, Element {
      */
     public void setOffset(float offset) {
         this.offset = offset;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        draw(pdfDocument.getGraphics(), pdfDocument.indentLeft(), pdfDocument.indentBottom(), pdfDocument.indentRight(), pdfDocument.indentTop(), pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - (pdfDocument.getLeadingCount() > 0 ? pdfDocument.getLeading() : 0));
+        pdfDocument.setPageEmpty(false);
+
+        return true;
     }
 }

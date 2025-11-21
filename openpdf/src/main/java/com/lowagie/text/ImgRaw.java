@@ -52,6 +52,7 @@ package com.lowagie.text;
 
 import java.net.URL;
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * Raw Image data that has to be inserted into the document
@@ -94,5 +95,13 @@ public class ImgRaw extends Image {
         rawData = data;
         plainWidth = getWidth();
         plainHeight = getHeight();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        //carriageReturn(); suggestion by Marc Campforts
+        pdfDocument.add(this);
+
+        return true;
     }
 }

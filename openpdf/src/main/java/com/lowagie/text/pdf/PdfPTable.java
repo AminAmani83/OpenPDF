@@ -1035,7 +1035,7 @@ public class PdfPTable implements LargeElement{
     public ArrayList<Element> getChunks() {
         return new ArrayList<>();
     }
-    
+
     /**
      * Gets the type of the text element.
      *
@@ -1601,5 +1601,22 @@ public class PdfPTable implements LargeElement{
      */
     public void setComplete(boolean complete) {
         this.complete = complete;
+    }
+
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        if (size() <= getHeaderRows())
+            return true; //nothing to do
+
+        // before every table, we add a new line and flush all lines
+        pdfDocument.ensureNewLine();
+        pdfDocument.flushLines();
+
+        pdfDocument.addPTable(this);
+        pdfDocument.setPageEmpty(false);
+        pdfDocument.newLine();
+
+        return true;
     }
 }

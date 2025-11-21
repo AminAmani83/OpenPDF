@@ -49,6 +49,10 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfPageEvent;
+
 /**
  * A <CODE>Paragraph</CODE> is a series of <CODE>Chunk</CODE>s and/or <CODE>Phrases</CODE>.
  * <P>
@@ -497,6 +501,59 @@ public class Paragraph extends Phrase {
      */
     public float spacingAfter() {
         return spacingAfter;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
+        pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
+
+        // we adjust the parameters of the document
+        pdfDocument.setAlignment(getAlignment());
+        pdfDocument.setLeading(getTotalLeading());
+        pdfDocument.carriageReturn();
+
+        // we don't want to make orphans/widows
+        if (pdfDocument.getCurrentHeight() + pdfDocument.getLine().height() + pdfDocument.getLeading() > pdfDocument.indentTop() - pdfDocument.indentBottom()) {
+            pdfDocument.newPage();
+        }
+        pdfDocument.getIndentation().indentLeft += getIndentationLeft();
+        pdfDocument.getIndentation().indentRight += getIndentationRight();
+        pdfDocument.carriageReturn();
+
+        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
+        if (pageEvent != null && !pdfDocument.isSectionTitle())
+            pageEvent.onParagraph(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+
+        // if a paragraph has to be kept together, we wrap it in a table object
+        if (getKeepTogether()) {
+            pdfDocument.carriageReturn();
+            // fixes bug with nested tables not shown
+            // Paragraph#getChunks() doesn't contain the nested table element
+            PdfPTable table = PdfDocument.createInOneCell(this);
+            pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+            pdfDocument.getIndentation().indentRight -= getIndentationRight();
+            pdfDocument.add(table);
+            pdfDocument.getIndentation().indentLeft += getIndentationLeft();
+            pdfDocument.getIndentation().indentRight += getIndentationRight();
+        }
+        else {
+            pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
+            process(pdfDocument);
+            pdfDocument.carriageReturn();
+            pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
+        }
+
+        if (pageEvent != null && !pdfDocument.isSectionTitle())
+            pageEvent.onParagraphEnd(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+
+        pdfDocument.setAlignment(Element.ALIGN_LEFT);
+        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
+        pdfDocument.carriageReturn();
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+
+        return true;
     }
 
 }

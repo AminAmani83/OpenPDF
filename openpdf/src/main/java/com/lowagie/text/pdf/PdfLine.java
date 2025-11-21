@@ -104,8 +104,8 @@ public class PdfLine {
      * @param    alignment    the alignment of the line
      * @param    height        the height of the line
      */
-    
-    PdfLine(float left, float right, int alignment, float height) {
+
+    public PdfLine(float left, float right, int alignment, float height) {
         this.left = left;
         this.width = right - left;
         this.originalWidth = this.width;
@@ -144,8 +144,8 @@ public class PdfLine {
      *                a <CODE>PdfChunk</CODE> containing the part of the chunk that could
      *                not be added is returned
      */
-    
-    PdfChunk add(PdfChunk chunk) {
+
+    public PdfChunk add(PdfChunk chunk) {
         // nothing happens if the chunk is null.
         if (chunk == null || chunk.toString().equals("")) {
             return null;
@@ -232,8 +232,8 @@ public class PdfLine {
      *
      * @return    a value
      */
-    
-    float height() {
+
+    public float height() {
         return height;
     }
     
@@ -289,7 +289,7 @@ public class PdfLine {
     }
     
     /** Adds extra indentation to the left (for Paragraph.setFirstLineIndent). */
-    void setExtraIndent(float extra) {
+    public void setExtraIndent(float extra) {
         left += extra;
         width -= extra;
     }
@@ -299,8 +299,8 @@ public class PdfLine {
      *
      * @return    a value
      */
-    
-    float widthLeft() {
+
+    public float widthLeft() {
         return width;
     }
     

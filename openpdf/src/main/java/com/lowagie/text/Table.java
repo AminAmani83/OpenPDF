@@ -56,6 +56,8 @@ import com.lowagie.text.alignment.HorizontalAlignment;
 import com.lowagie.text.alignment.VerticalAlignment;
 import com.lowagie.text.alignment.WithHorizontalAlignment;
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.PdfDocument;
+import com.lowagie.text.pdf.PdfLine;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import java.awt.Dimension;
@@ -1520,5 +1522,33 @@ public class Table extends TableRectangle implements LargeElement, WithHorizonta
      */
     public void setDefaultLayout(Cell value) {
         defaultCell = value;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        try {
+            PdfPTable ptable = createPdfPTable();
+            if (ptable.size() <= ptable.getHeaderRows())
+                return true; // nothing to do
+            // before every table, we add a new line and flush all lines
+            pdfDocument.ensureNewLine();
+            pdfDocument.flushLines();
+            pdfDocument.addPTable(ptable);
+            pdfDocument.setPageEmpty(false);
+            return true;
+        }
+        catch(BadElementException bee) {
+            // constructing the PdfTable
+            // Before the table, add a blank line using offset or default leading
+            float offset = getOffset();
+            if (Float.isNaN(offset))
+                offset = pdfDocument.getLeading();
+            pdfDocument.carriageReturn();
+            pdfDocument.getLines().add(new PdfLine(pdfDocument.indentLeft(), pdfDocument.indentRight(), alignment, offset));
+            pdfDocument.setCurrentHeight(pdfDocument.getCurrentHeight() + offset);
+            pdfDocument.addPdfTable(this);
+        }
+
+        return true;
     }
 }

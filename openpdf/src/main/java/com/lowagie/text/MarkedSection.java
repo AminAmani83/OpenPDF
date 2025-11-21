@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.util.Collection;
 
 /**
@@ -276,5 +278,18 @@ public class MarkedSection extends MarkedObject {
      */
     public void newPage() {
         ((Section)element).newPage();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        MarkedObject mo;
+        mo = getTitle();
+        if (mo != null) {
+            mo.process(pdfDocument);
+        }
+        mo = (MarkedObject)this;
+        mo.process(pdfDocument);
+
+        return true;
     }
 }

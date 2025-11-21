@@ -57,10 +57,7 @@ import java.util.Map;
 
 import com.lowagie.text.error_messages.MessageLocalization;
 
-import com.lowagie.text.pdf.HyphenationEvent;
-import com.lowagie.text.pdf.PdfAction;
-import com.lowagie.text.pdf.PdfAnnotation;
-import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.*;
 import com.lowagie.text.pdf.draw.DrawInterface;
 
 /**
@@ -927,5 +924,31 @@ public class Chunk implements Element {
             return (Float) attributes.get(CHAR_SPACING);
         }
         return 0.0f;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        // if there isn't a current line available, we make one
+        if (pdfDocument.getLine() == null) {
+            pdfDocument.carriageReturn();
+        }
+
+        // we cast the element to a chunk
+        PdfChunk chunk = new PdfChunk(this, pdfDocument.getAnchorAction());
+        // we try to add the chunk to the line, until we succeed
+        {
+            PdfChunk overflow;
+            while ((overflow = pdfDocument.getLine().add(chunk)) != null) {
+                pdfDocument.carriageReturn();
+                chunk = overflow;
+                chunk.trimFirstSpace();
+            }
+        }
+        pdfDocument.setPageEmpty(false);
+        if (chunk.isAttribute(Chunk.NEWPAGE)) {
+            pdfDocument.newPage();
+        }
+
+        return true;
     }
 }

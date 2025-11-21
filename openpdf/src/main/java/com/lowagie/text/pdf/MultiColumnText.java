@@ -424,7 +424,7 @@ public class MultiColumnText implements Element {
     public ArrayList<Element> getChunks() {
         return null;
     }
-    
+
     /**
      * @see com.lowagie.text.Element#isContent()
      * @since    iText 2.0.8
@@ -612,5 +612,17 @@ public class MultiColumnText implements Element {
             return (left.length == 4 && right.length == 4) && (left[0] == left[2] && right[0] == right[2]);
         }
 
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.ensureNewLine();
+        pdfDocument.flushLines();
+        float height = write(pdfDocument.writer.getDirectContent(), pdfDocument, pdfDocument.indentTop() - pdfDocument.currentHeight);
+        pdfDocument.currentHeight += height;
+        pdfDocument.text.moveText(0, -1f* height);
+        pdfDocument.setPageEmpty(false);
+
+        return true;
     }
 }

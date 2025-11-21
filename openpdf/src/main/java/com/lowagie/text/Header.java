@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 /**
  * This is an <CODE>Element</CODE> that contains
  * some user defined meta information about the document.
@@ -92,6 +94,12 @@ public class Header extends Meta {
      */
     public String getName() {
         return name.toString();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.getInfo().addkey(getName(), getContent());
+        return true;
     }
 
 }

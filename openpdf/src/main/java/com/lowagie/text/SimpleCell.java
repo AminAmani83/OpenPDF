@@ -51,10 +51,8 @@ package com.lowagie.text;
 import com.lowagie.text.alignment.HorizontalAlignment;
 import com.lowagie.text.alignment.VerticalAlignment;
 import com.lowagie.text.error_messages.MessageLocalization;
-import com.lowagie.text.pdf.PdfContentByte;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPCellEvent;
-import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.*;
+
 import java.util.ArrayList;
 import java.util.Optional;
 

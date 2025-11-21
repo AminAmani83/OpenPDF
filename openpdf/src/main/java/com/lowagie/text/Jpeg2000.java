@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * An <CODE>Jpeg2000</CODE> is the representation of a graphic element (JPEG)
@@ -232,5 +233,13 @@ public class Jpeg2000 extends Image {
         }
         plainWidth = getWidth();
         plainHeight = getHeight();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        //carriageReturn(); suggestion by Marc Campforts
+        pdfDocument.add(this);
+
+        return true;
     }
 }

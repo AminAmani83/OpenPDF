@@ -52,11 +52,7 @@ package com.lowagie.text.pdf;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.lowagie.text.Cell;
-import com.lowagie.text.Element;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.Row;
-import com.lowagie.text.Table;
+import com.lowagie.text.*;
 
 /**
  * <CODE>PdfTable</CODE> is an object that contains the graphics and text of a table.
@@ -307,5 +303,10 @@ public class PdfTable extends Rectangle {
      */
     public float getOffset() {
         return table.getOffset();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        return false;
     }
 }

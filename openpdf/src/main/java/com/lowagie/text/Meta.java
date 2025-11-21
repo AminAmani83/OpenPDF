@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.util.ArrayList;
 
 /**
@@ -64,7 +66,7 @@ import java.util.ArrayList;
  * @see        Header
  */
 
-public class Meta implements Element {
+public abstract class Meta implements Element {
     
     // membervariables
     
@@ -86,7 +88,7 @@ public class Meta implements Element {
         this.type = type;
         this.content = new StringBuffer(content);
     }
-    
+
     /**
      * Constructs a <CODE>Meta</CODE>.
      *
@@ -97,7 +99,27 @@ public class Meta implements Element {
         this.type = Meta.getType(tag);
         this.content = new StringBuffer(content);
     }
-    
+
+    public static Meta getInstance(String tag, String content) {
+        switch (Meta.getType(tag)) {
+            case Element.SUBJECT:
+                return new MetaSubject(content);
+            case Element.KEYWORDS:
+                return new MetaKeywords(content);
+            case Element.AUTHOR:
+                return new MetaAuthor(content);
+            case Element.TITLE:
+                return new MetaTitle(content);
+            case Element.PRODUCER:
+                return new MetaProducer(content);
+            case Element.CREATIONDATE:
+                return new MetaCreationDate(content);
+            default:
+                return null;
+        }
+    }
+
+
     // implementation of the Element-methods
     
     /**
@@ -133,7 +155,7 @@ public class Meta implements Element {
     public ArrayList<Element> getChunks() {
         return new ArrayList<>();
     }
-    
+
     /**
      * @see com.lowagie.text.Element#isContent()
      * @since    iText 2.0.8
@@ -226,4 +248,6 @@ public class Meta implements Element {
         return Element.HEADER;
     }
 
+    @Override
+    public abstract boolean add(PdfDocument pdfDocument) throws DocumentException;
 }

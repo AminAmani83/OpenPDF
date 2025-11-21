@@ -49,6 +49,11 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfAnnotation;
+import com.lowagie.text.pdf.PdfDocument;
+import com.lowagie.text.pdf.internal.PdfAnnotationsImp;
+
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -612,4 +617,22 @@ public class Annotation implements Element {
         return true;
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        try {
+            if (pdfDocument.getLine() == null) {
+                pdfDocument.carriageReturn();
+            }
+            Rectangle rect = new Rectangle(0, 0);
+            if (pdfDocument.getLine() != null)
+                rect = new Rectangle(llx(pdfDocument.indentRight() - pdfDocument.getLine().widthLeft()), ury(pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - 20), urx(pdfDocument.indentRight() - pdfDocument.getLine().widthLeft() + 20), lly(pdfDocument.indentTop() - pdfDocument.getCurrentHeight()));
+            PdfAnnotation an = PdfAnnotationsImp.convertAnnotation(pdfDocument.getWriter(), this, rect);
+            pdfDocument.getAnnotationsImp().addPlainAnnotation(an);
+            pdfDocument.setPageEmpty(false);
+        } catch (IOException e) {
+            throw new DocumentException(e);
+        }
+
+        return true;
+    }
 }

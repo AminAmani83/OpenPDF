@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.util.ArrayList;
 
 /**
@@ -346,4 +348,6 @@ public interface Element {
      */
 
     String toString();
+
+    boolean add(PdfDocument pdfDocument) throws DocumentException;
 }

@@ -54,6 +54,7 @@ import com.lowagie.text.alignment.HorizontalAlignment;
 import com.lowagie.text.alignment.WithHorizontalAlignment;
 import java.util.ArrayList;
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * A <CODE>Row</CODE> is part of a <CODE>Table</CODE>
@@ -149,7 +150,7 @@ public class Row implements Element, WithHorizontalAlignment {
     public ArrayList<Element> getChunks() {
         return new ArrayList<>();
     }
-    
+
     /**
      * @see com.lowagie.text.Element#isContent()
      * @since    iText 2.0.8
@@ -392,5 +393,10 @@ public class Row implements Element, WithHorizontalAlignment {
         }
 
         horizontalAlignment = alignment.getId();
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        return false;
     }
 }

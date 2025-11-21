@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -152,4 +154,10 @@ public class MarkedObject implements Element {
         markupAttributes.setProperty(key, value);
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        process(pdfDocument);
+
+        return true;
+    }
 }

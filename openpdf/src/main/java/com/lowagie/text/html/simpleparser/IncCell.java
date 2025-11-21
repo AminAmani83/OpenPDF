@@ -47,11 +47,9 @@
 
 package com.lowagie.text.html.simpleparser;
 
-import com.lowagie.text.Element;
-import com.lowagie.text.ElementListener;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.TextElementArray;
+import com.lowagie.text.*;
 import com.lowagie.text.html.Markup;
+import com.lowagie.text.pdf.PdfDocument;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.utils.NumberUtilities;
 import java.util.ArrayList;
@@ -157,5 +155,10 @@ public class IncCell implements TextElementArray {
     @Override
     public boolean isNestable() {
         return true;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        return false;
     }
 }

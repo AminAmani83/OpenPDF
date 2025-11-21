@@ -56,6 +56,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import com.lowagie.text.error_messages.MessageLocalization;
 
+import com.lowagie.text.pdf.PdfDocument;
 import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.codec.wmf.InputMeta;
 import com.lowagie.text.pdf.codec.wmf.MetaDo;
@@ -188,5 +189,10 @@ public class ImgWMF extends Image {
                 is.close();
             }
         }
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        return false;
     }
 }

@@ -52,6 +52,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import com.lowagie.text.pdf.GrayColor;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * A <CODE>Rectangle</CODE> is the representation of a geometric figure.
@@ -967,6 +968,14 @@ public class Rectangle implements Element {
     buf.append(rotation);
     buf.append(" degrees)");
     return buf.toString();
+  }
+
+  @Override
+  public boolean add(PdfDocument pdfDocument) throws DocumentException {
+    pdfDocument.getGraphics().rectangle(this);
+    pdfDocument.setPageEmpty(false);
+
+    return true;
   }
 
 }

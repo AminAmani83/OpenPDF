@@ -479,7 +479,7 @@ public class SAXiTextHandler<T extends XmlPeer> extends DefaultHandler {
                     }
                 } else {
                     try {
-                        document.add(new Meta(key, value));
+                        document.add(Meta.getInstance(key, value));
                     } catch (DocumentException de) {
                         throw new ExceptionConverter(de);
                     }

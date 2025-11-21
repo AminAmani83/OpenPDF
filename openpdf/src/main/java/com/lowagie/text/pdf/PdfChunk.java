@@ -186,8 +186,8 @@ public class PdfChunk {
  * @param chunk the original <CODE>Chunk</CODE>-object
  * @param action the <CODE>PdfAction</CODE> if the <CODE>Chunk</CODE> comes from an <CODE>Anchor</CODE>
  */
-    
-    PdfChunk(Chunk chunk, PdfAction action) {
+
+public PdfChunk(Chunk chunk, PdfAction action) {
         thisChunk[0] = this;
         value = chunk.getContent();
         
@@ -645,8 +645,8 @@ public class PdfChunk {
  * @param name the attribute key
  * @return <CODE>true</CODE> if the attribute exists
  */
-    
-    boolean isAttribute(String name)
+
+public boolean isAttribute(String name)
     {
         if (attributes.containsKey(name))
             return true;

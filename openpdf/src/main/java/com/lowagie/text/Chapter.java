@@ -50,6 +50,11 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfDocument;
+import com.lowagie.text.pdf.PdfOutline;
+import com.lowagie.text.pdf.PdfPageEvent;
+
 import java.util.ArrayList;
 
 /**
@@ -133,4 +138,56 @@ public class Chapter extends Section {
         return false;
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
+
+        boolean hasTitle = isNotAddedYet()
+                && getTitle() != null;
+
+        // if the section is a chapter, we begin a new page
+        if (isTriggerNewPage()) {
+            newPage();
+        }
+
+        if (hasTitle) {
+            float fith = pdfDocument.indentTop() - pdfDocument.getCurrentHeight();
+            int rotation = pdfDocument.pageSize.getRotation();
+            if (rotation == 90 || rotation == 180)
+                fith = pdfDocument.pageSize.getHeight() - fith;
+            PdfDestination destination = new PdfDestination(PdfDestination.FITH, fith);
+            while (pdfDocument.getCurrentOutline().level() >= getDepth()) {
+                pdfDocument.setCurrentOutline(pdfDocument.getCurrentOutline().parent());
+            }
+            PdfOutline outline = new PdfOutline(pdfDocument.getCurrentOutline(), destination, getBookmarkTitle(), isBookmarkOpen());
+            pdfDocument.setCurrentOutline(outline);
+        }
+
+        // some values are set
+        pdfDocument.carriageReturn();
+        pdfDocument.getIndentation().sectionIndentLeft += getIndentationLeft();
+        pdfDocument.getIndentation().sectionIndentRight += getIndentationRight();
+
+        if (isNotAddedYet() && pageEvent != null)
+            pageEvent.onChapter(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight(), getTitle());
+
+        // the title of the section (if any has to be printed)
+        if (hasTitle) {
+            pdfDocument.setSectionTitle(true);
+            add(getTitle());
+            pdfDocument.setSectionTitle(false);
+        }
+        pdfDocument.getIndentation().sectionIndentLeft += getIndentation();
+        // we process the section
+        process(pdfDocument);
+        pdfDocument.flushLines();
+        // some parameters are set back to normal again
+        pdfDocument.getIndentation().sectionIndentLeft -= (getIndentationLeft() + getIndentation());
+        pdfDocument.getIndentation().sectionIndentRight -= getIndentationRight();
+
+        if (isComplete() && pageEvent != null)
+            pageEvent.onChapterEnd(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+
+        return true;
+    }
 }

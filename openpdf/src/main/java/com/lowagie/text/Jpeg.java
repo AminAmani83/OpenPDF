@@ -56,6 +56,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import com.lowagie.text.error_messages.MessageLocalization;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * An <CODE>Jpeg</CODE> is the representation of a graphic element (JPEG)
@@ -352,5 +353,13 @@ public class Jpeg extends Image {
             }
             icc = null;
         }
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        //carriageReturn(); suggestion by Marc Campforts
+        pdfDocument.add(this);
+
+        return true;
     }
 }

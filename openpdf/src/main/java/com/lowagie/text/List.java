@@ -52,6 +52,7 @@ package com.lowagie.text;
 import java.util.ArrayList;
 
 import com.lowagie.text.factories.RomanAlphabetFactory;
+import com.lowagie.text.pdf.PdfDocument;
 
 /**
  * A <CODE>List</CODE> contains several <CODE>ListItem</CODE>s.
@@ -257,7 +258,7 @@ public class List implements TextElementArray {
         }
         return tmp;
     }
-    
+
     // methods to set the membervariables
     
     /**
@@ -595,6 +596,24 @@ public class List implements TextElementArray {
      */
     public void setPreSymbol(String preSymbol) {
         this.preSymbol = preSymbol;
+    }
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        if (isAlignindent()) {
+            normalizeIndentation();
+        }
+        // we adjust the document
+        pdfDocument.getIndentation().listIndentLeft += getIndentationLeft();
+        pdfDocument.getIndentation().indentRight += getIndentationRight();
+        // we process the items in the list
+        process(pdfDocument);
+        // some parameters are set back to normal again
+        pdfDocument.getIndentation().listIndentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
+        pdfDocument.carriageReturn();
+
+        return true;
     }
 
 }

@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 /**
  * A <CODE>ListItem</CODE> is a <CODE>Paragraph</CODE>
  * that can be added to a <CODE>List</CODE>.
@@ -253,4 +255,35 @@ public class ListItem extends Paragraph {
         return symbol;
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
+        pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
+
+        // we adjust the document
+        pdfDocument.setAlignment(getAlignment());
+        pdfDocument.getIndentation().listIndentLeft += getIndentationLeft();
+        pdfDocument.getIndentation().indentRight += getIndentationRight();
+        pdfDocument.setLeading(getTotalLeading());
+        pdfDocument.carriageReturn();
+
+        // we prepare the current line to be able to show us the listsymbol
+        pdfDocument.getLine().setListItem(this);
+        // we process the item
+        process(pdfDocument);
+
+        pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
+
+        // if the last line is justified, it should be aligned to the left
+        if (pdfDocument.getLine().hasToBeJustified()) {
+            pdfDocument.getLine().resetAlignment();
+        }
+        // some parameters are set back to normal again
+        pdfDocument.carriageReturn();
+        pdfDocument.getIndentation().listIndentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+
+        return true;
+    }
 }

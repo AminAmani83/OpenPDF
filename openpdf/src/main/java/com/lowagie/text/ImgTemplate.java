@@ -52,6 +52,7 @@ package com.lowagie.text;
 import java.net.URL;
 import com.lowagie.text.error_messages.MessageLocalization;
 
+import com.lowagie.text.pdf.PdfDocument;
 import com.lowagie.text.pdf.PdfTemplate;
 
 /**
@@ -89,5 +90,12 @@ public class ImgTemplate extends Image {
         plainWidth = getWidth();
         plainHeight = getHeight();
     }
-    
+
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        //carriageReturn(); suggestion by Marc Campforts
+        pdfDocument.add(this);
+
+        return true;
+    }
 }

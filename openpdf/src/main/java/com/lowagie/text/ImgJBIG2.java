@@ -49,6 +49,8 @@
 
 package com.lowagie.text;
 
+import com.lowagie.text.pdf.PdfDocument;
+
 import java.net.URL;
 import java.security.MessageDigest;
 
@@ -128,4 +130,11 @@ public class ImgJBIG2 extends Image {
         return this.globalHash;
     }
 
+    @Override
+    public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        //carriageReturn(); suggestion by Marc Campforts
+        pdfDocument.add(this);
+
+        return true;
+    }
 }

@@ -51,7 +51,6 @@ package com.lowagie.text.pdf;
 
 import static java.awt.Font.LAYOUT_RIGHT_TO_LEFT;
 
-import com.lowagie.text.Anchor;
 import com.lowagie.text.Annotation;
 import com.lowagie.text.BadElementException;
 import com.lowagie.text.Chunk;
@@ -62,11 +61,9 @@ import com.lowagie.text.ExceptionConverter;
 import com.lowagie.text.Font;
 import com.lowagie.text.HeaderFooter;
 import com.lowagie.text.Image;
-import com.lowagie.text.List;
 import com.lowagie.text.ListItem;
 import com.lowagie.text.MarkedObject;
 import com.lowagie.text.MarkedSection;
-import com.lowagie.text.Meta;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
@@ -81,13 +78,7 @@ import com.lowagie.text.pdf.internal.PdfViewerPreferencesImp;
 import java.awt.Color;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 
 /**
@@ -150,7 +141,7 @@ public class PdfDocument extends Document {
          * @param    title        the title of the document
          */
 
-        void addTitle(String title) {
+        public void addTitle(String title) {
             put(PdfName.TITLE, new PdfString(title, PdfObject.TEXT_UNICODE));
         }
 
@@ -160,7 +151,7 @@ public class PdfDocument extends Document {
          * @param    subject        the subject of the document
          */
 
-        void addSubject(String subject) {
+        public void addSubject(String subject) {
             put(PdfName.SUBJECT, new PdfString(subject, PdfObject.TEXT_UNICODE));
         }
 
@@ -170,7 +161,7 @@ public class PdfDocument extends Document {
          * @param    keywords        the keywords of the document
          */
 
-        void addKeywords(String keywords) {
+        public void addKeywords(String keywords) {
             put(PdfName.KEYWORDS, new PdfString(keywords, PdfObject.TEXT_UNICODE));
         }
 
@@ -180,7 +171,7 @@ public class PdfDocument extends Document {
          * @param    author        the name of the author
          */
 
-        void addAuthor(String author) {
+        public void addAuthor(String author) {
             put(PdfName.AUTHOR, new PdfString(author, PdfObject.TEXT_UNICODE));
         }
 
@@ -190,7 +181,7 @@ public class PdfDocument extends Document {
          * @param    creator        the name of the creator
          */
 
-        void addCreator(String creator) {
+        public void addCreator(String creator) {
             put(PdfName.CREATOR, new PdfString(creator, PdfObject.TEXT_UNICODE));
         }
 
@@ -206,7 +197,7 @@ public class PdfDocument extends Document {
          *
          * @param producer name of the producer
          */
-        void addProducer(final String producer) {
+        public void addProducer(final String producer) {
             put(PdfName.PRODUCER, new PdfString(producer));
         }
 
@@ -214,13 +205,13 @@ public class PdfDocument extends Document {
          * Adds the date of creation to the document.
          */
 
-        void addCreationDate() {
+        public void addCreationDate() {
             PdfString date = new PdfDate();
             put(PdfName.CREATIONDATE, date);
             put(PdfName.MODDATE, date);
         }
 
-        void addkey(String key, String value) {
+        public void addkey(String key, String value) {
             if (key.equals("Producer") || key.equals("CreationDate"))
                 return;
             put(new PdfName(key), new PdfString(value, PdfObject.TEXT_UNICODE));
@@ -336,6 +327,10 @@ public class PdfDocument extends Document {
         addCreationDate();
     }
 
+    public PdfWriter getWriter() {
+        return writer;
+    }
+
     /** The <CODE>PdfWriter</CODE>. */
     protected PdfWriter writer;
 
@@ -362,6 +357,10 @@ public class PdfDocument extends Document {
     /** This is the PdfContentByte object, containing the text. */
     protected PdfContentByte text;
 
+    public PdfContentByte getGraphics() {
+        return graphics;
+    }
+
     /** This is the PdfContentByte object, containing the borders and other Graphics. */
     protected PdfContentByte graphics;
 
@@ -382,15 +381,35 @@ public class PdfDocument extends Document {
      * @param    leading the current leading
      * @since    2.1.6
      */
-    void setLeading(float leading) {
+    public void setLeading(float leading) {
         this.leading = leading;
+    }
+
+    public void setAlignment(int alignment) {
+        this.alignment = alignment;
     }
 
     /** This represents the current alignment of the PDF Elements. */
     protected int alignment = Element.ALIGN_LEFT;
 
+    public float getCurrentHeight() {
+        return currentHeight;
+    }
+
+    public void setCurrentHeight(float currentHeight) {
+        this.currentHeight = currentHeight;
+    }
+
     /** This is the current height of the document. */
     protected float currentHeight = 0;
+
+    public boolean isSectionTitle() {
+        return isSectionTitle;
+    }
+
+    public void setSectionTitle(boolean sectionTitle) {
+        isSectionTitle = sectionTitle;
+    }
 
     /**
      * Signals that onParagraph is valid (to avoid that a Chapter/Section title is treated as a Paragraph).
@@ -398,11 +417,27 @@ public class PdfDocument extends Document {
      */
     protected boolean isSectionTitle = false;
 
+    public int getLeadingCount() {
+        return leadingCount;
+    }
+
+    public void setLeadingCount(int leadingCount) {
+        this.leadingCount = leadingCount;
+    }
+
     /**
      * Signals that the current leading has to be subtracted from a YMark object when positive.
      * @since 2.1.2
      */
     protected int leadingCount = 0;
+
+    public PdfAction getAnchorAction() {
+        return anchorAction;
+    }
+
+    public void setAnchorAction(PdfAction anchorAction) {
+        this.anchorAction = anchorAction;
+    }
 
     /** The current active <CODE>PdfAction</CODE> when processing an <CODE>Anchor</CODE>. */
     protected PdfAction anchorAction = null;
@@ -420,366 +455,13 @@ public class PdfDocument extends Document {
         if (writer != null && writer.isPaused()) {
             return false;
         }
-        try {
-            switch(element.type()) {
-                // Information (headers)
-                case Element.HEADER:
-                    info.addkey(((Meta)element).getName(), ((Meta)element).getContent());
-                    break;
-                case Element.TITLE:
-                    info.addTitle(((Meta)element).getContent());
-                    break;
-                case Element.SUBJECT:
-                    info.addSubject(((Meta)element).getContent());
-                    break;
-                case Element.KEYWORDS:
-                    info.addKeywords(((Meta)element).getContent());
-                    break;
-                case Element.AUTHOR:
-                    info.addAuthor(((Meta)element).getContent());
-                    break;
-                case Element.CREATOR:
-                    info.addCreator(((Meta)element).getContent());
-                    break;
-                case Element.PRODUCER:
-                    info.addProducer(((Meta) element).getContent());
-                    break;
-                case Element.CREATIONDATE:
-                    // you can not set the creation date, only reset it
-                    info.addCreationDate();
-                    break;
-
-                // content (text)
-                case Element.CHUNK: {
-                    // if there isn't a current line available, we make one
-                    if (line == null) {
-                        carriageReturn();
-                    }
-
-                    // we cast the element to a chunk
-                    PdfChunk chunk = new PdfChunk((Chunk) element, anchorAction);
-                    // we try to add the chunk to the line, until we succeed
-                    {
-                        PdfChunk overflow;
-                        while ((overflow = line.add(chunk)) != null) {
-                            carriageReturn();
-                            chunk = overflow;
-                            chunk.trimFirstSpace();
-                        }
-                    }
-                    pageEmpty = false;
-                    if (chunk.isAttribute(Chunk.NEWPAGE)) {
-                        newPage();
-                    }
-                    break;
-                }
-                case Element.ANCHOR: {
-                    leadingCount++;
-                    Anchor anchor = (Anchor) element;
-                    String url = anchor.getReference();
-                    leading = anchor.getLeading();
-                    if (url != null) {
-                        anchorAction = new PdfAction(url);
-                    }
-                    // we process the element
-                    element.process(this);
-                    anchorAction = null;
-                    leadingCount--;
-                    break;
-                }
-                case Element.ANNOTATION: {
-                    if (line == null) {
-                        carriageReturn();
-                    }
-                    Annotation annot = (Annotation) element;
-                    Rectangle rect = new Rectangle(0, 0);
-                    if (line != null)
-                        rect = new Rectangle(annot.llx(indentRight() - line.widthLeft()), annot.ury(indentTop() - currentHeight - 20), annot.urx(indentRight() - line.widthLeft() + 20), annot.lly(indentTop() - currentHeight));
-                    PdfAnnotation an = PdfAnnotationsImp.convertAnnotation(writer, annot, rect);
-                    annotationsImp.addPlainAnnotation(an);
-                    pageEmpty = false;
-                    break;
-                }
-                case Element.PHRASE: {
-                    leadingCount++;
-                    // we cast the element to a phrase and set the leading of the document
-                    leading = ((Phrase) element).getLeading();
-                    // we process the element
-                    element.process(this);
-                    leadingCount--;
-                    break;
-                }
-                case Element.PARAGRAPH: {
-                    leadingCount++;
-                    // we cast the element to a paragraph
-                    Paragraph paragraph = (Paragraph) element;
-                    addSpacing(paragraph.getSpacingBefore(), leading, paragraph.getFont());
-
-                    // we adjust the parameters of the document
-                    alignment = paragraph.getAlignment();
-                    leading = paragraph.getTotalLeading();
-                    carriageReturn();
-
-                    // we don't want to make orphans/widows
-                    if (currentHeight + line.height() + leading > indentTop() - indentBottom()) {
-                        newPage();
-                    }
-                    indentation.indentLeft += paragraph.getIndentationLeft();
-                    indentation.indentRight += paragraph.getIndentationRight();
-                    carriageReturn();
-
-                    PdfPageEvent pageEvent = writer.getPageEvent();
-                    if (pageEvent != null && !isSectionTitle)
-                        pageEvent.onParagraph(writer, this, indentTop() - currentHeight);
-
-                    // if a paragraph has to be kept together, we wrap it in a table object
-                    if (paragraph.getKeepTogether()) {
-                        carriageReturn();
-                        // fixes bug with nested tables not shown
-                        // Paragraph#getChunks() doesn't contain the nested table element
-                        PdfPTable table = createInOneCell(paragraph);
-                        indentation.indentLeft -= paragraph.getIndentationLeft();
-                        indentation.indentRight -= paragraph.getIndentationRight();
-                        this.add(table);
-                        indentation.indentLeft += paragraph.getIndentationLeft();
-                        indentation.indentRight += paragraph.getIndentationRight();
-                    }
-                    else {
-                        line.setExtraIndent(paragraph.getFirstLineIndent());
-                        element.process(this);
-                        carriageReturn();
-                        addSpacing(paragraph.getSpacingAfter(), paragraph.getTotalLeading(), paragraph.getFont());
-                    }
-
-                    if (pageEvent != null && !isSectionTitle)
-                        pageEvent.onParagraphEnd(writer, this, indentTop() - currentHeight);
-
-                    alignment = Element.ALIGN_LEFT;
-                    indentation.indentLeft -= paragraph.getIndentationLeft();
-                    indentation.indentRight -= paragraph.getIndentationRight();
-                    carriageReturn();
-                    leadingCount--;
-                    break;
-                }
-                case Element.SECTION:
-                case Element.CHAPTER: {
-                    // Chapters and Sections only differ in their constructor
-                    // so we cast both to a Section
-                    Section section = (Section) element;
-                    PdfPageEvent pageEvent = writer.getPageEvent();
-
-                    boolean hasTitle = section.isNotAddedYet()
-                        && section.getTitle() != null;
-
-                    // if the section is a chapter, we begin a new page
-                    if (section.isTriggerNewPage()) {
-                        newPage();
-                    }
-
-                    if (hasTitle) {
-                        float fith = indentTop() - currentHeight;
-                        int rotation = pageSize.getRotation();
-                        if (rotation == 90 || rotation == 180)
-                            fith = pageSize.getHeight() - fith;
-                        PdfDestination destination = new PdfDestination(PdfDestination.FITH, fith);
-                        while (currentOutline.level() >= section.getDepth()) {
-                            currentOutline = currentOutline.parent();
-                        }
-                        PdfOutline outline = new PdfOutline(currentOutline, destination, section.getBookmarkTitle(), section.isBookmarkOpen());
-                        currentOutline = outline;
-                    }
-
-                    // some values are set
-                    carriageReturn();
-                    indentation.sectionIndentLeft += section.getIndentationLeft();
-                    indentation.sectionIndentRight += section.getIndentationRight();
-
-                    if (section.isNotAddedYet() && pageEvent != null)
-                        if (element.type() == Element.CHAPTER)
-                            pageEvent.onChapter(writer, this, indentTop() - currentHeight, section.getTitle());
-                        else
-                            pageEvent.onSection(writer, this, indentTop() - currentHeight, section.getDepth(), section.getTitle());
-
-                    // the title of the section (if any has to be printed)
-                    if (hasTitle) {
-                        isSectionTitle = true;
-                        add(section.getTitle());
-                        isSectionTitle = false;
-                    }
-                    indentation.sectionIndentLeft += section.getIndentation();
-                    // we process the section
-                    element.process(this);
-                    flushLines();
-                    // some parameters are set back to normal again
-                    indentation.sectionIndentLeft -= (section.getIndentationLeft() + section.getIndentation());
-                    indentation.sectionIndentRight -= section.getIndentationRight();
-
-                    if (section.isComplete() && pageEvent != null)
-                        if (element.type() == Element.CHAPTER)
-                            pageEvent.onChapterEnd(writer, this, indentTop() - currentHeight);
-                        else
-                            pageEvent.onSectionEnd(writer, this, indentTop() - currentHeight);
-
-                    break;
-                }
-                case Element.LIST: {
-                    // we cast the element to a List
-                    List list = (List) element;
-                    if (list.isAlignindent()) {
-                        list.normalizeIndentation();
-                    }
-                    // we adjust the document
-                    indentation.listIndentLeft += list.getIndentationLeft();
-                    indentation.indentRight += list.getIndentationRight();
-                    // we process the items in the list
-                    element.process(this);
-                    // some parameters are set back to normal again
-                    indentation.listIndentLeft -= list.getIndentationLeft();
-                    indentation.indentRight -= list.getIndentationRight();
-                    carriageReturn();
-                    break;
-                }
-                case Element.LISTITEM: {
-                    leadingCount++;
-                    // we cast the element to a ListItem
-                    ListItem listItem = (ListItem) element;
-
-                    addSpacing(listItem.getSpacingBefore(), leading, listItem.getFont());
-
-                    // we adjust the document
-                    alignment = listItem.getAlignment();
-                    indentation.listIndentLeft += listItem.getIndentationLeft();
-                    indentation.indentRight += listItem.getIndentationRight();
-                    leading = listItem.getTotalLeading();
-                    carriageReturn();
-
-                    // we prepare the current line to be able to show us the listsymbol
-                    line.setListItem(listItem);
-                    // we process the item
-                    element.process(this);
-
-                    addSpacing(listItem.getSpacingAfter(), listItem.getTotalLeading(), listItem.getFont());
-
-                    // if the last line is justified, it should be aligned to the left
-                    if (line.hasToBeJustified()) {
-                        line.resetAlignment();
-                    }
-                    // some parameters are set back to normal again
-                    carriageReturn();
-                    indentation.listIndentLeft -= listItem.getIndentationLeft();
-                    indentation.indentRight -= listItem.getIndentationRight();
-                    leadingCount--;
-                    break;
-                }
-                case Element.RECTANGLE: {
-                    Rectangle rectangle = (Rectangle) element;
-                    graphics.rectangle(rectangle);
-                    pageEmpty = false;
-                    break;
-                }
-                case Element.PTABLE: {
-                    PdfPTable ptable = (PdfPTable)element;
-                    if (ptable.size() <= ptable.getHeaderRows())
-                        break; //nothing to do
-
-                    // before every table, we add a new line and flush all lines
-                    ensureNewLine();
-                    flushLines();
-
-                    addPTable(ptable);
-                    pageEmpty = false;
-                    newLine();
-                    break;
-                }
-                case Element.MULTI_COLUMN_TEXT: {
-                    ensureNewLine();
-                    flushLines();
-                    MultiColumnText multiText = (MultiColumnText) element;
-                    float height = multiText.write(writer.getDirectContent(), this, indentTop() - currentHeight);
-                    currentHeight += height;
-                    text.moveText(0, -1f* height);
-                    pageEmpty = false;
-                    break;
-                }
-                case Element.TABLE : {
-                    if (element instanceof SimpleTable) {
-                        PdfPTable ptable = ((SimpleTable)element).createPdfPTable();
-                        if (ptable.size() <= ptable.getHeaderRows())
-                            break; //nothing to do
-
-                        // before every table, we add a new line and flush all lines
-                        ensureNewLine();
-                        flushLines();
-                        addPTable(ptable);
-                        pageEmpty = false;
-                        break;
-                    } else if (element instanceof Table) {
-                        try {
-                               PdfPTable ptable = ((Table)element).createPdfPTable();
-                               if (ptable.size() <= ptable.getHeaderRows())
-                                   break; //nothing to do
-                               // before every table, we add a new line and flush all lines
-                               ensureNewLine();
-                               flushLines();
-                               addPTable(ptable);
-                               pageEmpty = false;
-                               break;
-                        }
-                        catch(BadElementException bee) {
-                            // constructing the PdfTable
-                            // Before the table, add a blank line using offset or default leading
-                            float offset = ((Table)element).getOffset();
-                            if (Float.isNaN(offset))
-                                offset = leading;
-                            carriageReturn();
-                            lines.add(new PdfLine(indentLeft(), indentRight(), alignment, offset));
-                            currentHeight += offset;
-                            addPdfTable((Table)element);
-                        }
-                    } else {
-                        return false;
-                    }
-                    break;
-                }
-                case Element.JPEG:
-                case Element.JPEG2000:
-                case Element.JBIG2:
-                case Element.IMGRAW:
-                case Element.IMGTEMPLATE: {
-                    //carriageReturn(); suggestion by Marc Campforts
-                    add((Image) element);
-                    break;
-                }
-                case Element.YMARK: {
-                    DrawInterface zh = (DrawInterface)element;
-                    zh.draw(graphics, indentLeft(), indentBottom(), indentRight(), indentTop(), indentTop() - currentHeight - (leadingCount > 0 ? leading : 0));
-                    pageEmpty = false;
-                    break;
-                }
-                case Element.MARKED: {
-                    MarkedObject mo;
-                    if (element instanceof MarkedSection) {
-                        mo = ((MarkedSection)element).getTitle();
-                        if (mo != null) {
-                            mo.process(this);
-                        }
-                    }
-                    mo = (MarkedObject)element;
-                    mo.process(this);
-                    break;
-                }
-                default:
-                    return false;
-            }
-            lastElementType = element.type();
-            return true;
-        }
-        catch(Exception e) {
-            throw new DocumentException(e);
-        }
+        boolean result = element.add(this); // if we have any types that were not mentioned here, they should return false even if the compiler does not complain bcs some of them are children of some other element classes.
+        if (!result) return false;
+        lastElementType = element.type();
+        return true;
     }
 
-    static PdfPTable createInOneCell(Paragraph paragraph) {
+    public static PdfPTable createInOneCell(Paragraph paragraph) {
         PdfPTable table = new PdfPTable(1);
         table.setWidthPercentage(100f);
 
@@ -1242,6 +924,10 @@ public class PdfDocument extends Document {
     /** The line that is currently being written. */
     protected PdfLine line = null;
 
+    public List<PdfLine> getLines() {
+        return lines;
+    }
+
     /** The lines that are written until now. */
     protected java.util.List<PdfLine> lines = new ArrayList<>();
 
@@ -1263,7 +949,7 @@ public class PdfDocument extends Document {
      * If the current line is not empty or null, it is added to the arraylist
      * of lines and a new empty line is added.
      */
-    protected void carriageReturn() {
+    public void carriageReturn() {
         // the arraylist with lines may not be null
         if (lines == null) {
             lines = new ArrayList<>();
@@ -1314,7 +1000,7 @@ public class PdfDocument extends Document {
     /**
      * Ensures that a new line has been started.
      */
-    protected void ensureNewLine() {
+    public void ensureNewLine() {
       try {
         if ((lastElementType == Element.PHRASE) ||
             (lastElementType == Element.CHUNK)) {
@@ -1332,7 +1018,7 @@ public class PdfDocument extends Document {
      * @return the displacement that was caused
      * @throws DocumentException on error
      */
-    protected float flushLines() throws DocumentException {
+    public float flushLines() throws DocumentException {
         // checks if the ArrayList with the lines is not null
         if (lines == null) {
             return 0;
@@ -1762,6 +1448,10 @@ public class PdfDocument extends Document {
         currentValues[1] = lastBaseFactor;
     }
 
+    public Indentation getIndentation() {
+        return indentation;
+    }
+
     protected Indentation indentation = new Indentation();
 
     /**
@@ -1770,22 +1460,22 @@ public class PdfDocument extends Document {
     public static class Indentation {
 
         /** This represents the current indentation of the PDF Elements on the left side. */
-        float indentLeft = 0;
+        public float indentLeft = 0;
 
         /** Indentation to the left caused by a section. */
-        float sectionIndentLeft = 0;
+        public float sectionIndentLeft = 0;
 
         /** This represents the current indentation of the PDF Elements on the left side. */
-        float listIndentLeft = 0;
+        public float listIndentLeft = 0;
 
         /** This is the indentation caused by an image on the left. */
         float imageIndentLeft = 0;
 
         /** This represents the current indentation of the PDF Elements on the right side. */
-        float indentRight = 0;
+        public float indentRight = 0;
 
         /** Indentation to the right caused by a section. */
-        float sectionIndentRight = 0;
+        public float sectionIndentRight = 0;
 
         /** This is the indentation caused by an image on the right. */
         float imageIndentRight = 0;
@@ -1803,7 +1493,7 @@ public class PdfDocument extends Document {
      * @return    a margin
      */
 
-    protected float indentLeft() {
+    public float indentLeft() {
         return left(indentation.indentLeft + indentation.listIndentLeft + indentation.imageIndentLeft + indentation.sectionIndentLeft);
     }
 
@@ -1813,7 +1503,7 @@ public class PdfDocument extends Document {
      * @return    a margin
      */
 
-    protected float indentRight() {
+    public float indentRight() {
         return right(indentation.indentRight + indentation.sectionIndentRight + indentation.imageIndentRight);
     }
 
@@ -1823,7 +1513,7 @@ public class PdfDocument extends Document {
      * @return    a margin
      */
 
-    protected float indentTop() {
+    public float indentTop() {
         return top(indentation.indentTop);
     }
 
@@ -1833,7 +1523,7 @@ public class PdfDocument extends Document {
      * @return    a margin
      */
 
-    float indentBottom() {
+    public float indentBottom() {
         return bottom(indentation.indentBottom);
     }
 
@@ -1845,7 +1535,7 @@ public class PdfDocument extends Document {
      * @param oldleading old leading
      * @param f font
      */
-    protected void addSpacing(float extraspace, float oldleading, Font f) {
+    public void addSpacing(float extraspace, float oldleading, Font f) {
         if (extraspace == 0) return;
         if (pageEmpty) return;
         if (currentHeight + line.height() + leading > indentTop() - indentBottom()) return;
@@ -1875,7 +1565,7 @@ public class PdfDocument extends Document {
      * @return    <CODE>PdfInfo</CODE>
      */
 
-    protected PdfInfo getInfo() {
+    public PdfInfo getInfo() {
         return info;
     }
 
@@ -1942,6 +1632,14 @@ public class PdfDocument extends Document {
 
     /** This is the root outline of the document. */
     protected PdfOutline rootOutline;
+
+    public PdfOutline getCurrentOutline() {
+        return currentOutline;
+    }
+
+    public void setCurrentOutline(PdfOutline currentOutline) {
+        this.currentOutline = currentOutline;
+    }
 
     /** This is the current <CODE>PdfOutline</CODE> in the hierarchy of outlines. */
     protected PdfOutline currentOutline;
@@ -2262,6 +1960,10 @@ public class PdfDocument extends Document {
 
 //    [C8] AcroForm
 
+    public PdfAnnotationsImp getAnnotationsImp() {
+        return annotationsImp;
+    }
+
     PdfAnnotationsImp annotationsImp;
 
     /**
@@ -2357,7 +2059,7 @@ public class PdfDocument extends Document {
     /** This checks if the page is empty. */
     private boolean pageEmpty = true;
 
-    void setPageEmpty(boolean pageEmpty) {
+    public void setPageEmpty(boolean pageEmpty) {
         this.pageEmpty = pageEmpty;
     }
 
@@ -2464,7 +2166,7 @@ public class PdfDocument extends Document {
      * @throws DocumentException on error
      */
 
-    protected void add(Image image) throws DocumentException {
+    public void add(Image image) throws DocumentException {
 
         if (image.hasAbsoluteY()) {
             graphics.addImage(image);
@@ -2534,7 +2236,7 @@ public class PdfDocument extends Document {
      * @param ptable the <CODE>PdfPTable</CODE> to be added to the document.
      * @throws DocumentException on error
      */
-    void addPTable(PdfPTable ptable) throws DocumentException {
+    public void addPTable(PdfPTable ptable) throws DocumentException {
         ColumnText ct = new ColumnText(writer.getDirectContent());
         // if the table prefers to be on a single page, and it wouldn't
         //fit on the current page, start a new page.
@@ -2700,7 +2402,7 @@ public class PdfDocument extends Document {
      * @throws DocumentException
      * @since    iText 2.0.8
      */
-    private void addPdfTable(Table t) throws DocumentException {
+    public void addPdfTable(Table t) throws DocumentException {
         // before every table, we flush all lines
         flushLines();
 
@@ -3191,5 +2893,9 @@ public class PdfDocument extends Document {
         indentation.imageIndentRight = tmpImageIndentRight;
         // End added: Bonf (Marc Schneider) 2003-07-29
         // End Added by Edgar Leonardo Prieto Perilla
+    }
+
+    public PdfLine getLine() {
+        return line;
     }
 }
