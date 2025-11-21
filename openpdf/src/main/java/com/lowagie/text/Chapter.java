@@ -138,56 +138,36 @@ public class Chapter extends Section {
         return false;
     }
 
+    /**
+     * Overrides the event trigger for when a chapter is added.
+     * Instead of calling onSection(), this calls onChapter() which is
+     * more specific for chapters.
+     *
+     * @param pdfDocument the PDF document
+     * @param pageEvent   the page event listener
+     */
     @Override
-    public boolean add(PdfDocument pdfDocument) throws DocumentException {
-        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
-
-        boolean hasTitle = isNotAddedYet()
-                && getTitle() != null;
-
-        // if the section is a chapter, we begin a new page
-        if (isTriggerNewPage()) {
-            newPage();
+    protected void triggerAddEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (isNotAddedYet() && pageEvent != null) {
+            pageEvent.onChapter(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight(),
+                    getTitle());
         }
+    }
 
-        if (hasTitle) {
-            float fith = pdfDocument.indentTop() - pdfDocument.getCurrentHeight();
-            int rotation = pdfDocument.pageSize.getRotation();
-            if (rotation == 90 || rotation == 180)
-                fith = pdfDocument.pageSize.getHeight() - fith;
-            PdfDestination destination = new PdfDestination(PdfDestination.FITH, fith);
-            while (pdfDocument.getCurrentOutline().level() >= getDepth()) {
-                pdfDocument.setCurrentOutline(pdfDocument.getCurrentOutline().parent());
-            }
-            PdfOutline outline = new PdfOutline(pdfDocument.getCurrentOutline(), destination, getBookmarkTitle(), isBookmarkOpen());
-            pdfDocument.setCurrentOutline(outline);
+    /**
+     * Overrides the event trigger for when a chapter is completely added.
+     * Instead of calling onSectionEnd(), this calls onChapterEnd() which is
+     * more specific for chapters.
+     *
+     * @param pdfDocument the PDF document
+     * @param pageEvent   the page event listener
+     */
+    @Override
+    protected void triggerCompleteEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (isComplete() && pageEvent != null) {
+            pageEvent.onChapterEnd(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
         }
-
-        // some values are set
-        pdfDocument.carriageReturn();
-        pdfDocument.getIndentation().sectionIndentLeft += getIndentationLeft();
-        pdfDocument.getIndentation().sectionIndentRight += getIndentationRight();
-
-        if (isNotAddedYet() && pageEvent != null)
-            pageEvent.onChapter(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight(), getTitle());
-
-        // the title of the section (if any has to be printed)
-        if (hasTitle) {
-            pdfDocument.setSectionTitle(true);
-            add(getTitle());
-            pdfDocument.setSectionTitle(false);
-        }
-        pdfDocument.getIndentation().sectionIndentLeft += getIndentation();
-        // we process the section
-        process(pdfDocument);
-        pdfDocument.flushLines();
-        // some parameters are set back to normal again
-        pdfDocument.getIndentation().sectionIndentLeft -= (getIndentationLeft() + getIndentation());
-        pdfDocument.getIndentation().sectionIndentRight -= getIndentationRight();
-
-        if (isComplete() && pageEvent != null)
-            pageEvent.onChapterEnd(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
-
-        return true;
     }
 }

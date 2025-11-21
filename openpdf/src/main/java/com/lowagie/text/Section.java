@@ -772,56 +772,145 @@ public class Section extends ArrayList<Element> implements TextElementArray, Lar
     }
 
 
+    /**
+     * Adds this section to a PDF document.
+     * This method implements the template method pattern, allowing subclasses
+     * to customize event handling while keeping the core logic in this class.
+     */
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
+        prepareSection(pdfDocument);
+        renderSectionTitle(pdfDocument);
+        processSectionContent(pdfDocument);
+        finalizeSectionLayout(pdfDocument);
+
+        return true;
+    }
+
+    /**
+     * Prepares the section for rendering.
+     * Handles page events, outline creation, and layout initialization.
+     */
+    private void prepareSection(PdfDocument pdfDocument) {
         PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
 
-        boolean hasTitle = isNotAddedYet()
-                && getTitle() != null;
+        boolean hasTitle = isNotAddedYet() && getTitle() != null;
 
-        // if the section is a chapter, we begin a new page
+        // if the section is a chapter, begin a new page
         if (isTriggerNewPage()) {
             newPage();
         }
 
+        // Set up outline and destination for the section
         if (hasTitle) {
-            float fith = pdfDocument.indentTop() - pdfDocument.getCurrentHeight();
-            int rotation = pdfDocument.pageSize.getRotation();
-            if (rotation == 90 || rotation == 180)
-                fith = pdfDocument.pageSize.getHeight() - fith;
-            PdfDestination destination = new PdfDestination(PdfDestination.FITH, fith);
-            while (pdfDocument.getCurrentOutline().level() >= getDepth()) {
-                pdfDocument.setCurrentOutline(pdfDocument.getCurrentOutline().parent());
-            }
-            PdfOutline outline = new PdfOutline(pdfDocument.getCurrentOutline(), destination, getBookmarkTitle(), isBookmarkOpen());
-            pdfDocument.setCurrentOutline(outline);
+            createOutlineAndDestination(pdfDocument);
         }
 
-        // some values are set
+        // Set up indentation
         pdfDocument.carriageReturn();
         pdfDocument.getIndentation().sectionIndentLeft += getIndentationLeft();
         pdfDocument.getIndentation().sectionIndentRight += getIndentationRight();
 
-        if (isNotAddedYet() && pageEvent != null)
-            pageEvent.onSection(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight(), getDepth(), getTitle());
+        // Trigger the appropriate event (Section vs Chapter)
+        triggerAddEvent(pdfDocument, pageEvent);
+    }
 
-        // the title of the section (if any has to be printed)
+    /**
+     * Creates the outline entry and destination for this section in the PDF.
+     * This is used for bookmarks and internal navigation.
+     */
+    private void createOutlineAndDestination(PdfDocument pdfDocument) {
+        float fith = pdfDocument.indentTop() - pdfDocument.getCurrentHeight();
+        int rotation = pdfDocument.pageSize.getRotation();
+        if (rotation == 90 || rotation == 180)
+            fith = pdfDocument.pageSize.getHeight() - fith;
+
+        PdfDestination destination = new PdfDestination(PdfDestination.FITH, fith);
+
+        // Navigate to the correct outline level
+        while (pdfDocument.getCurrentOutline().level() >= getDepth()) {
+            pdfDocument.setCurrentOutline(pdfDocument.getCurrentOutline().parent());
+        }
+
+        // Create and set the new outline entry
+        PdfOutline outline = new PdfOutline(pdfDocument.getCurrentOutline(), destination,
+                getBookmarkTitle(), isBookmarkOpen());
+        pdfDocument.setCurrentOutline(outline);
+    }
+
+    /**
+     * Renders the section title.
+     * The title is rendered with appropriate numbering based on section depth.
+     */
+    private void renderSectionTitle(PdfDocument pdfDocument) {
+        boolean hasTitle = isNotAddedYet() && getTitle() != null;
+
         if (hasTitle) {
             pdfDocument.setSectionTitle(true);
             add(getTitle());
             pdfDocument.setSectionTitle(false);
         }
+    }
+
+    /**
+     * Processes the content of this section.
+     * Applies indentation and renders all child elements.
+     */
+    private void processSectionContent(PdfDocument pdfDocument) {
         pdfDocument.getIndentation().sectionIndentLeft += getIndentation();
-        // we process the section
+
+        // Process all elements in the section
         process(pdfDocument);
+
         pdfDocument.flushLines();
-        // some parameters are set back to normal again
+    }
+
+    /**
+     * Finalizes the section layout.
+     * Removes indentation and triggers completion events.
+     */
+    private void finalizeSectionLayout(PdfDocument pdfDocument) {
+        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
+
+        // Reset indentation
         pdfDocument.getIndentation().sectionIndentLeft -= (getIndentationLeft() + getIndentation());
         pdfDocument.getIndentation().sectionIndentRight -= getIndentationRight();
 
-        if (isComplete() && pageEvent != null)
-            pageEvent.onSectionEnd(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
-
-        return true;
+        // Trigger completion event
+        triggerCompleteEvent(pdfDocument, pageEvent);
     }
+
+    /**
+     * Triggers the event when the section is added to the document.
+     * This method can be overridden by subclasses to provide custom event handling.
+     * Default implementation: Calls onSection event
+     * Chapter override: Calls onChapter event
+     *
+     * @param pdfDocument the PDF document
+     * @param pageEvent   the page event listener
+     */
+    protected void triggerAddEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (isNotAddedYet() && pageEvent != null) {
+            pageEvent.onSection(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight(),
+                    getDepth(), getTitle());
+        }
+    }
+
+    /**
+     * Triggers the event when the section is completely added to the document.
+     * This method can be overridden by subclasses to provide custom event handling.
+     * Default implementation: Calls onSectionEnd event
+     * Chapter override: Calls onChapterEnd event
+     *
+     * @param pdfDocument the PDF document
+     * @param pageEvent   the page event listener
+     */
+    protected void triggerCompleteEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (isComplete() && pageEvent != null) {
+            pageEvent.onSectionEnd(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+        }
+    }
+
 }
