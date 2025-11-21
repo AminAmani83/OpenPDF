@@ -503,57 +503,140 @@ public class Paragraph extends Phrase {
         return spacingAfter;
     }
 
+    /**
+     * Adds this paragraph to a PDF document.
+     * This method orchestrates the rendering of the paragraph by delegating
+     * to specialized helper methods, each handling a specific concern.
+     *
+     * @param pdfDocument the PDF document to add this paragraph to
+     * @return true if the paragraph was successfully added
+     * @throws DocumentException if an error occurs during processing
+     */
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
         pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
-        pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
 
-        // we adjust the parameters of the document
+        try {
+            prepareParagraphLayout(pdfDocument);
+            ensureSpaceAvailable(pdfDocument);
+
+            PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
+            triggerParagraphStartEvent(pdfDocument, pageEvent);
+
+            if (getKeepTogether()) {
+                renderParagraphInOneCell(pdfDocument);
+            } else {
+                renderParagraphNormally(pdfDocument);
+            }
+
+            triggerParagraphEndEvent(pdfDocument, pageEvent);
+            finalizeParagraphLayout(pdfDocument);
+
+            return true;
+        } finally {
+            pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+        }
+    }
+
+    /**
+     * Prepares the document layout parameters for the paragraph.
+     * Sets spacing, alignment, and leading values.
+     */
+    private void prepareParagraphLayout(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
         pdfDocument.setAlignment(getAlignment());
         pdfDocument.setLeading(getTotalLeading());
         pdfDocument.carriageReturn();
+    }
 
-        // we don't want to make orphans/widows
-        if (pdfDocument.getCurrentHeight() + pdfDocument.getLine().height() + pdfDocument.getLeading() > pdfDocument.indentTop() - pdfDocument.indentBottom()) {
+    /**
+     * Ensures there is enough space on the current page for the paragraph.
+     * If not, creates a new page.
+     */
+    private void ensureSpaceAvailable(PdfDocument pdfDocument) {
+        float requiredHeight = pdfDocument.getCurrentHeight() +
+                pdfDocument.getLine().height() +
+                pdfDocument.getLeading();
+        float availableHeight = pdfDocument.indentTop() - pdfDocument.indentBottom();
+
+        if (requiredHeight > availableHeight) {
             pdfDocument.newPage();
         }
+    }
+
+    /**
+     * Applies indentation and carriage return to set up the paragraph rendering area.
+     */
+    private void applyIndentation(PdfDocument pdfDocument) {
         pdfDocument.getIndentation().indentLeft += getIndentationLeft();
         pdfDocument.getIndentation().indentRight += getIndentationRight();
         pdfDocument.carriageReturn();
-
-        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
-        if (pageEvent != null && !pdfDocument.isSectionTitle())
-            pageEvent.onParagraph(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
-
-        // if a paragraph has to be kept together, we wrap it in a table object
-        if (getKeepTogether()) {
-            pdfDocument.carriageReturn();
-            // fixes bug with nested tables not shown
-            // Paragraph#getChunks() doesn't contain the nested table element
-            PdfPTable table = PdfDocument.createInOneCell(this);
-            pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
-            pdfDocument.getIndentation().indentRight -= getIndentationRight();
-            pdfDocument.add(table);
-            pdfDocument.getIndentation().indentLeft += getIndentationLeft();
-            pdfDocument.getIndentation().indentRight += getIndentationRight();
-        }
-        else {
-            pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
-            process(pdfDocument);
-            pdfDocument.carriageReturn();
-            pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
-        }
-
-        if (pageEvent != null && !pdfDocument.isSectionTitle())
-            pageEvent.onParagraphEnd(pdfDocument.getWriter(), pdfDocument, pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
-
-        pdfDocument.setAlignment(Element.ALIGN_LEFT);
-        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
-        pdfDocument.getIndentation().indentRight -= getIndentationRight();
-        pdfDocument.carriageReturn();
-        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
-
-        return true;
     }
 
+    /**
+     * Removes the indentation that was applied to the paragraph.
+     */
+    private void removeIndentation(PdfDocument pdfDocument) {
+        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
+    }
+
+    /**
+     * Triggers the onParagraph event if a page event listener is registered.
+     */
+    private void triggerParagraphStartEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (pageEvent != null && !pdfDocument.isSectionTitle()) {
+            pageEvent.onParagraph(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+        }
+    }
+
+    /**
+     * Triggers the onParagraphEnd event if a page event listener is registered.
+     */
+    private void triggerParagraphEndEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        if (pageEvent != null && !pdfDocument.isSectionTitle()) {
+            pageEvent.onParagraphEnd(pdfDocument.getWriter(), pdfDocument,
+                    pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+        }
+    }
+
+    /**
+     * Renders the paragraph with the keepTogether flag set.
+     * Wraps the paragraph content in a table to ensure it stays on one page.
+     */
+    private void renderParagraphInOneCell(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.carriageReturn();
+
+        // fixes bug with nested tables not shown
+        // Paragraph#getChunks() doesn't contain the nested table element
+        PdfPTable table = PdfDocument.createInOneCell(this);
+
+        removeIndentation(pdfDocument);
+        pdfDocument.add(table);
+        applyIndentation(pdfDocument);
+    }
+
+    /**
+     * Renders the paragraph normally, allowing it to break across pages if needed.
+     */
+    private void renderParagraphNormally(PdfDocument pdfDocument) throws DocumentException {
+        applyIndentation(pdfDocument);
+
+        pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
+        process(pdfDocument);
+        pdfDocument.carriageReturn();
+
+        pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
+
+        removeIndentation(pdfDocument);
+    }
+
+    /**
+     * Finalizes the paragraph layout by resetting alignment and adding a carriage return.
+     */
+    private void finalizeParagraphLayout(PdfDocument pdfDocument) {
+        pdfDocument.setAlignment(Element.ALIGN_LEFT);
+        pdfDocument.carriageReturn();
+    }
 }
