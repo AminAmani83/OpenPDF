@@ -75,48 +75,48 @@ import com.lowagie.text.pdf.PdfPageEvent;
  */
 
 public class Paragraph extends Phrase {
-    
+
     // constants
     private static final long serialVersionUID = 7852314969733375514L;
-    
+
     // membervariables
-    
+
     /** The alignment of the text. */
     protected int alignment = Element.ALIGN_UNDEFINED;
-    
+
     /** The text leading that is multiplied by the biggest font size in the line. */
     protected float multipliedLeading = 0;
-    
+
     /** The indentation of this paragraph on the left side. */
     protected float indentationLeft;
-    
+
     /** The indentation of this paragraph on the right side. */
     protected float indentationRight;
-    
+
     /** Holds value of property firstLineIndent. */
     private float firstLineIndent = 0;
-    
+
     /** The spacing before the paragraph. */
     protected float spacingBefore;
-    
+
     /** The spacing after the paragraph. */
     protected float spacingAfter;
-    
+
     /** Holds value of property extraParagraphSpace. */
     private float extraParagraphSpace = 0;
-    
+
     /** Does the paragraph has to be kept together on 1 page. */
     protected boolean keeptogether = false;
-    
+
     // constructors
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE>.
      */
     public Paragraph() {
         super();
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain leading.
      *
@@ -125,27 +125,27 @@ public class Paragraph extends Phrase {
     public Paragraph(float leading) {
         super(leading);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>Chunk</CODE>.
      *
      * @param    chunk        a <CODE>Chunk</CODE>
-     */    
+     */
     public Paragraph(Chunk chunk) {
         super(chunk);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>Chunk</CODE>
      * and a certain leading.
      *
      * @param    leading        the leading
      * @param    chunk        a <CODE>Chunk</CODE>
-     */    
+     */
     public Paragraph(float leading, Chunk chunk) {
         super(leading, chunk);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>String</CODE>.
      *
@@ -154,7 +154,7 @@ public class Paragraph extends Phrase {
     public Paragraph(String string) {
         super(string);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>String</CODE>
      * and a certain <CODE>Font</CODE>.
@@ -165,7 +165,7 @@ public class Paragraph extends Phrase {
     public Paragraph(String string, Font font) {
         super(string, font);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>String</CODE>
      * and a certain leading.
@@ -176,7 +176,7 @@ public class Paragraph extends Phrase {
     public Paragraph(float leading, String string) {
         super(leading, string);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain leading, <CODE>String</CODE>
      * and <CODE>Font</CODE>.
@@ -188,12 +188,12 @@ public class Paragraph extends Phrase {
     public Paragraph(float leading, String string, Font font) {
         super(leading, string, font);
     }
-    
+
     /**
      * Constructs a <CODE>Paragraph</CODE> with a certain <CODE>Phrase</CODE>.
      *
      * @param    phrase        a <CODE>Phrase</CODE>
-     */    
+     */
     public Paragraph(Phrase phrase) {
         super(phrase);
         if (phrase instanceof Paragraph) {
@@ -208,9 +208,9 @@ public class Paragraph extends Phrase {
             setExtraParagraphSpace(p.getExtraParagraphSpace());
         }
     }
-    
+
     // implementation of the Element-methods
-    
+
     /**
      * Gets the type of the text element.
      *
@@ -219,9 +219,9 @@ public class Paragraph extends Phrase {
     public int type() {
         return Element.PARAGRAPH;
     }
-    
+
     // methods
-    
+
     /**
      * Adds an <CODE>Object</CODE> to the <CODE>Paragraph</CODE>.
      *
@@ -253,9 +253,9 @@ public class Paragraph extends Phrase {
         }
         return super.add(o);
     }
-    
+
     // setting the membervariables
-    
+
     /**
      * Sets the alignment of this paragraph.
      *
@@ -264,7 +264,7 @@ public class Paragraph extends Phrase {
     public void setAlignment(int alignment) {
         this.alignment = alignment;
     }
-    
+
     /**
      * Sets the alignment of this paragraph.
      *
@@ -289,7 +289,7 @@ public class Paragraph extends Phrase {
         }
         this.alignment = Element.ALIGN_LEFT;
     }
-    
+
     /**
      * @see com.lowagie.text.Phrase#setLeading(float)
      */
@@ -297,7 +297,7 @@ public class Paragraph extends Phrase {
         this.leading = fixedLeading;
         this.multipliedLeading = 0;
     }
-    
+
     /**
      * Sets the variable leading. The resultant leading will be
      * multipliedLeading*maxFontSize where maxFontSize is the
@@ -308,7 +308,7 @@ public class Paragraph extends Phrase {
         this.leading = 0;
         this.multipliedLeading = multipliedLeading;
     }
-    
+
     /**
      * Sets the leading fixed and variable. The resultant leading will be
      * fixedLeading+multipliedLeading*maxFontSize where maxFontSize is the
@@ -320,7 +320,7 @@ public class Paragraph extends Phrase {
         this.leading = fixedLeading;
         this.multipliedLeading = multipliedLeading;
     }
-    
+
     /**
      * Sets the indentation of this paragraph on the left side.
      *
@@ -329,7 +329,7 @@ public class Paragraph extends Phrase {
     public void setIndentationLeft(float indentation) {
         this.indentationLeft = indentation;
     }
-    
+
     /**
      * Sets the indentation of this paragraph on the right side.
      *
@@ -338,7 +338,7 @@ public class Paragraph extends Phrase {
     public void setIndentationRight(float indentation) {
         this.indentationRight = indentation;
     }
-    
+
     /**
      * Setter for property firstLineIndent.
      * @param firstLineIndent New value of property firstLineIndent.
@@ -346,7 +346,7 @@ public class Paragraph extends Phrase {
     public void setFirstLineIndent(float firstLineIndent) {
         this.firstLineIndent = firstLineIndent;
     }
-    
+
     /**
      * Sets the spacing before this paragraph.
      *
@@ -355,7 +355,7 @@ public class Paragraph extends Phrase {
     public void setSpacingBefore(float spacing) {
         this.spacingBefore = spacing;
     }
-    
+
     /**
      * Sets the spacing after this paragraph.
      *
@@ -364,7 +364,7 @@ public class Paragraph extends Phrase {
     public void setSpacingAfter(float spacing) {
         this.spacingAfter = spacing;
     }
-    
+
     /**
      * Indicates that the paragraph has to be kept together on one page.
      *
@@ -373,7 +373,7 @@ public class Paragraph extends Phrase {
     public void setKeepTogether(boolean keeptogether) {
         this.keeptogether = keeptogether;
     }
-    
+
     /**
      * Checks if this paragraph has to be kept together on one page.
      *
@@ -393,7 +393,7 @@ public class Paragraph extends Phrase {
     public int getAlignment() {
         return alignment;
     }
-    
+
     /**
      * Gets the variable leading
      * @return the leading
@@ -401,7 +401,7 @@ public class Paragraph extends Phrase {
     public float getMultipliedLeading() {
         return multipliedLeading;
     }
-    
+
     /**
      * Gets the total leading.
      * This method is based on the assumption that the
@@ -436,7 +436,7 @@ public class Paragraph extends Phrase {
     public float getIndentationRight() {
         return indentationRight;
     }
-    
+
     /**
      * Getter for property firstLineIndent.
      * @return Value of property firstLineIndent.
@@ -444,7 +444,7 @@ public class Paragraph extends Phrase {
     public float getFirstLineIndent() {
         return this.firstLineIndent;
     }
-    
+
     /**
      * Gets the spacing before this paragraph.
      * @return    the spacing
@@ -452,8 +452,8 @@ public class Paragraph extends Phrase {
      */
     public float getSpacingBefore() {
         return spacingBefore;
-    }    
-    
+    }
+
     /**
      * Gets the spacing after this paragraph.
      * @return    the spacing
@@ -461,8 +461,8 @@ public class Paragraph extends Phrase {
      */
     public float getSpacingAfter() {
         return spacingAfter;
-    }  
-    
+    }
+
     /**
      * Getter for property extraParagraphSpace.
      * @return Value of property extraParagraphSpace.
@@ -470,7 +470,7 @@ public class Paragraph extends Phrase {
     public float getExtraParagraphSpace() {
         return this.extraParagraphSpace;
     }
-    
+
     /**
      * Setter for property extraParagraphSpace.
      * @param extraParagraphSpace New value of property extraParagraphSpace.
@@ -478,9 +478,9 @@ public class Paragraph extends Phrase {
     public void setExtraParagraphSpace(float extraParagraphSpace) {
         this.extraParagraphSpace = extraParagraphSpace;
     }
-    
+
     // scheduled for removal
-    
+
     /**
      * Gets the spacing before this paragraph.
      *
@@ -504,139 +504,75 @@ public class Paragraph extends Phrase {
     }
 
     /**
-    m 
-     * This method orchestrates the rendering of the paragraph by delegating
-     * to specialized helper methods, each handling a specific concern.
-     *
-     * @param pdfDocument the PDF document to add this paragraph to
-     * @return true if the paragraph was successfully added
-     * @throws DocumentException if an error occurs during processing
+     * Complete Paragraph.add() method
+     * Based on the original case Element.PARAGRAPH logic from PdfDocument
      */
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
         pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
 
-        try {
-            prepareParagraphLayout(pdfDocument);
-            ensureSpaceAvailable(pdfDocument);
-
-            PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
-            triggerParagraphStartEvent(pdfDocument, pageEvent);
-
-            if (getKeepTogether()) {
-                renderParagraphInOneCell(pdfDocument);
-            } else {
-                renderParagraphNormally(pdfDocument);
-            }
-
-            triggerParagraphEndEvent(pdfDocument, pageEvent);
-            finalizeParagraphLayout(pdfDocument);
-
-            return true;
-        } finally {
-            pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
-        }
-    }
-
-    /**
-     * Prepares the document layout parameters for the paragraph.
-     * Sets spacing, alignment, and leading values.
-     */
-    private void prepareParagraphLayout(PdfDocument pdfDocument) throws DocumentException {
+        // Add spacing before the paragraph
         pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
+
+        // Adjust the parameters of the document
         pdfDocument.setAlignment(getAlignment());
         pdfDocument.setLeading(getTotalLeading());
         pdfDocument.carriageReturn();
-    }
 
-    /**
-     * Ensures there is enough space on the current page for the paragraph.
-     * If not, creates a new page.
-     */
-    private void ensureSpaceAvailable(PdfDocument pdfDocument) {
-        float requiredHeight = pdfDocument.getCurrentHeight() +
-                pdfDocument.getLine().height() +
-                pdfDocument.getLeading();
-        float availableHeight = pdfDocument.indentTop() - pdfDocument.indentBottom();
-
-        if (requiredHeight > availableHeight) {
+        // Check if we don't want to make orphans/widows
+        if (pdfDocument.getCurrentHeight() + pdfDocument.getLine().height() + pdfDocument.getLeading()
+                > pdfDocument.indentTop() - pdfDocument.indentBottom()) {
             pdfDocument.newPage();
         }
-    }
 
-    /**
-     * Applies indentation and carriage return to set up the paragraph rendering area.
-     */
-    private void applyIndentation(PdfDocument pdfDocument) {
+        // Apply indentation
         pdfDocument.getIndentation().indentLeft += getIndentationLeft();
         pdfDocument.getIndentation().indentRight += getIndentationRight();
         pdfDocument.carriageReturn();
-    }
 
-    /**
-     * Removes the indentation that was applied to the paragraph.
-     */
-    private void removeIndentation(PdfDocument pdfDocument) {
-        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
-        pdfDocument.getIndentation().indentRight -= getIndentationRight();
-    }
-
-    /**
-     * Triggers the onParagraph event if a page event listener is registered.
-     */
-    private void triggerParagraphStartEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        // Get the page event
+        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
         if (pageEvent != null && !pdfDocument.isSectionTitle()) {
             pageEvent.onParagraph(pdfDocument.getWriter(), pdfDocument,
                     pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
         }
-    }
 
-    /**
-     * Triggers the onParagraphEnd event if a page event listener is registered.
-     */
-    private void triggerParagraphEndEvent(PdfDocument pdfDocument, PdfPageEvent pageEvent) {
+        // Render the paragraph (either as a single cell or normally)
+        if (getKeepTogether()) {
+            // If a paragraph has to be kept together, wrap it in a table object
+            pdfDocument.carriageReturn();
+
+            // Fixes bug with nested tables not shown
+            // Paragraph#getChunks() doesn't contain the nested table element
+            PdfPTable table = pdfDocument.createInOneCell(this);
+
+            pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+            pdfDocument.getIndentation().indentRight -= getIndentationRight();
+            pdfDocument.add(table);
+            pdfDocument.getIndentation().indentLeft += getIndentationLeft();
+            pdfDocument.getIndentation().indentRight += getIndentationRight();
+        }
+        else {
+            // Normal paragraph rendering
+            pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
+            process(pdfDocument);
+            pdfDocument.carriageReturn();
+            pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
+        }
+
+        // Trigger paragraph end event
         if (pageEvent != null && !pdfDocument.isSectionTitle()) {
             pageEvent.onParagraphEnd(pdfDocument.getWriter(), pdfDocument,
                     pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
         }
-    }
 
-    /**
-     * Renders the paragraph with the keepTogether flag set.
-     * Wraps the paragraph content in a table to ensure it stays on one page.
-     */
-    private void renderParagraphInOneCell(PdfDocument pdfDocument) throws DocumentException {
-        pdfDocument.carriageReturn();
-
-        // fixes bug with nested tables not shown
-        // Paragraph#getChunks() doesn't contain the nested table element
-        PdfPTable table = PdfDocument.createInOneCell(this);
-
-        removeIndentation(pdfDocument);
-        pdfDocument.add(table);
-        applyIndentation(pdfDocument);
-    }
-
-    /**
-     * Renders the paragraph normally, allowing it to break across pages if needed.
-     */
-    private void renderParagraphNormally(PdfDocument pdfDocument) throws DocumentException {
-        applyIndentation(pdfDocument);
-
-        pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
-        process(pdfDocument);
-        pdfDocument.carriageReturn();
-
-        pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
-
-        removeIndentation(pdfDocument);
-    }
-
-    /**
-     * Finalizes the paragraph layout by resetting alignment and adding a carriage return.
-     */
-    private void finalizeParagraphLayout(PdfDocument pdfDocument) {
+        // Reset and finalize
         pdfDocument.setAlignment(Element.ALIGN_LEFT);
+        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
         pdfDocument.carriageReturn();
+
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+        return true;
     }
 }
