@@ -129,12 +129,4 @@ public class ImgJBIG2 extends Image {
     public byte[] getGlobalHash() {
         return this.globalHash;
     }
-
-    @Override
-    public boolean add(PdfDocument pdfDocument) throws DocumentException {
-        //carriageReturn(); suggestion by Marc Campforts
-        pdfDocument.add(this);
-
-        return true;
-    }
 }

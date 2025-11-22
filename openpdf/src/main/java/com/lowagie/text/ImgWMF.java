@@ -190,12 +190,4 @@ public class ImgWMF extends Image {
             }
         }
     }
-
-    @Override
-    public boolean add(PdfDocument pdfDocument) throws DocumentException {
-        //carriageReturn(); suggestion by Marc Campforts
-        pdfDocument.add(this);
-
-        return true;
-    }
 }

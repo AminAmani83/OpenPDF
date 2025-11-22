@@ -96,12 +96,4 @@ public class ImgRaw extends Image {
         plainWidth = getWidth();
         plainHeight = getHeight();
     }
-
-    @Override
-    public boolean add(PdfDocument pdfDocument) throws DocumentException {
-        //carriageReturn(); suggestion by Marc Campforts
-        pdfDocument.add(this);
-
-        return true;
-    }
 }

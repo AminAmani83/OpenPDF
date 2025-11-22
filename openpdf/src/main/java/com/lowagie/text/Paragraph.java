@@ -504,7 +504,7 @@ public class Paragraph extends Phrase {
     }
 
     /**
-     * Adds this paragraph to a PDF document.
+    m 
      * This method orchestrates the rendering of the paragraph by delegating
      * to specialized helper methods, each handling a specific concern.
      *

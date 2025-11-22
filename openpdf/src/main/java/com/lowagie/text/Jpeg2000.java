@@ -234,12 +234,4 @@ public class Jpeg2000 extends Image {
         plainWidth = getWidth();
         plainHeight = getHeight();
     }
-
-    @Override
-    public boolean add(PdfDocument pdfDocument) throws DocumentException {
-        //carriageReturn(); suggestion by Marc Campforts
-        pdfDocument.add(this);
-
-        return true;
-    }
 }
