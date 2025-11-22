@@ -511,68 +511,115 @@ public class Paragraph extends Phrase {
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
         pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() + 1);
 
-        // Add spacing before the paragraph
         pdfDocument.addSpacing(getSpacingBefore(), pdfDocument.getLeading(), getFont());
+        adjustDocumentParameters(pdfDocument);
+        checkForNewPageIfNeeded(pdfDocument);
+        applyIndentation(pdfDocument);
+        triggerParagraphStartEvent(pdfDocument);
+        renderParagraphContent(pdfDocument);
+        triggerParagraphEndEvent(pdfDocument);
+        resetDocumentState(pdfDocument);
 
-        // Adjust the parameters of the document
+        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
+        return true;
+    }
+
+
+    /**
+     * Adjust the parameters of the document (alignment, leading, carriage return).
+     */
+    private void adjustDocumentParameters(PdfDocument pdfDocument) {
         pdfDocument.setAlignment(getAlignment());
         pdfDocument.setLeading(getTotalLeading());
         pdfDocument.carriageReturn();
+    }
 
-        // Check if we don't want to make orphans/widows
+    /**
+     * Check if we don't want to make orphans/widows and create a new page if needed.
+     */
+    private void checkForNewPageIfNeeded(PdfDocument pdfDocument) {
         if (pdfDocument.getCurrentHeight() + pdfDocument.getLine().height() + pdfDocument.getLeading()
                 > pdfDocument.indentTop() - pdfDocument.indentBottom()) {
             pdfDocument.newPage();
         }
+    }
 
-        // Apply indentation
+    /**
+     * Apply indentation to the document.
+     */
+    private void applyIndentation(PdfDocument pdfDocument) {
         pdfDocument.getIndentation().indentLeft += getIndentationLeft();
         pdfDocument.getIndentation().indentRight += getIndentationRight();
         pdfDocument.carriageReturn();
+    }
 
-        // Get the page event
+    /**
+     * Trigger the paragraph start event if a page event is configured.
+     */
+    private void triggerParagraphStartEvent(PdfDocument pdfDocument) {
         PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
         if (pageEvent != null && !pdfDocument.isSectionTitle()) {
             pageEvent.onParagraph(pdfDocument.getWriter(), pdfDocument,
                     pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
         }
+    }
 
-        // Render the paragraph (either as a single cell or normally)
+    /**
+     * Render the paragraph content, either as a single cell (keep together) or normally.
+     */
+    private void renderParagraphContent(PdfDocument pdfDocument) throws DocumentException {
         if (getKeepTogether()) {
-            // If a paragraph has to be kept together, wrap it in a table object
-            pdfDocument.carriageReturn();
-
-            // Fixes bug with nested tables not shown
-            // Paragraph#getChunks() doesn't contain the nested table element
-            PdfPTable table = pdfDocument.createInOneCell(this);
-
-            pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
-            pdfDocument.getIndentation().indentRight -= getIndentationRight();
-            pdfDocument.add(table);
-            pdfDocument.getIndentation().indentLeft += getIndentationLeft();
-            pdfDocument.getIndentation().indentRight += getIndentationRight();
+            renderParagraphAsTable(pdfDocument);
+        } else {
+            renderParagraphNormally(pdfDocument);
         }
-        else {
-            // Normal paragraph rendering
-            pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
-            process(pdfDocument);
-            pdfDocument.carriageReturn();
-            pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
-        }
+    }
 
-        // Trigger paragraph end event
+    /**
+     * Render the paragraph as a table (for keep together functionality).
+     */
+    private void renderParagraphAsTable(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.carriageReturn();
+
+        // Fixes bug with nested tables not shown
+        // Paragraph#getChunks() doesn't contain the nested table element
+        PdfPTable table = PdfDocument.createInOneCell(this);
+
+        pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
+        pdfDocument.getIndentation().indentRight -= getIndentationRight();
+        pdfDocument.add(table);
+        pdfDocument.getIndentation().indentLeft += getIndentationLeft();
+        pdfDocument.getIndentation().indentRight += getIndentationRight();
+    }
+
+    /**
+     * Render the paragraph normally (without keep together).
+     */
+    private void renderParagraphNormally(PdfDocument pdfDocument) throws DocumentException {
+        pdfDocument.getLine().setExtraIndent(getFirstLineIndent());
+        process(pdfDocument);
+        pdfDocument.carriageReturn();
+        pdfDocument.addSpacing(getSpacingAfter(), getTotalLeading(), getFont());
+    }
+
+    /**
+     * Trigger the paragraph end event if a page event is configured.
+     */
+    private void triggerParagraphEndEvent(PdfDocument pdfDocument) {
+        PdfPageEvent pageEvent = pdfDocument.getWriter().getPageEvent();
         if (pageEvent != null && !pdfDocument.isSectionTitle()) {
             pageEvent.onParagraphEnd(pdfDocument.getWriter(), pdfDocument,
                     pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
         }
+    }
 
-        // Reset and finalize
+    /**
+     * Reset the document state (alignment, indentation).
+     */
+    private void resetDocumentState(PdfDocument pdfDocument) {
         pdfDocument.setAlignment(Element.ALIGN_LEFT);
         pdfDocument.getIndentation().indentLeft -= getIndentationLeft();
         pdfDocument.getIndentation().indentRight -= getIndentationRight();
         pdfDocument.carriageReturn();
-
-        pdfDocument.setLeadingCount(pdfDocument.getLeadingCount() - 1);
-        return true;
     }
 }
