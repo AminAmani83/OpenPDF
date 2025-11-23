@@ -51,15 +51,9 @@ package com.lowagie.text.pdf;
 
 import java.util.ArrayList;
 
+import com.lowagie.text.*;
 import com.lowagie.text.error_messages.MessageLocalization;
 
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Element;
-import com.lowagie.text.ElementListener;
-import com.lowagie.text.Image;
-import com.lowagie.text.LargeElement;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.events.PdfPTableEventForwarder;
 
 /**
@@ -1603,6 +1597,14 @@ public class PdfPTable implements LargeElement{
         this.complete = complete;
     }
 
+    /**
+     * whether or not to insert a new line in the doc, after the table is added
+     */
+    private boolean isAddNewLineAfter = true;
+
+    public void setAddNewLineAfter(boolean addNewLineAfter) {
+        isAddNewLineAfter = addNewLineAfter;
+    }
 
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
@@ -1612,11 +1614,68 @@ public class PdfPTable implements LargeElement{
         // before every table, we add a new line and flush all lines
         pdfDocument.ensureNewLine();
         pdfDocument.flushLines();
-
-        pdfDocument.addPTable(this);
+        addPtable(pdfDocument);
         pdfDocument.setPageEmpty(false);
-        pdfDocument.newLine();
+        if (isAddNewLineAfter)
+            pdfDocument.newLine();
 
         return true;
+    }
+
+    public void addPtable(PdfDocument pdfDocument) {
+        ColumnText ct = new ColumnText( pdfDocument.getWriter().getDirectContent());
+        // if the table prefers to be on a single page, and it wouldn't
+        //fit on the current page, start a new page.
+        if (getKeepTogether() && !fitsPage(pdfDocument, 0f) && pdfDocument.getCurrentHeight() > 0)  {
+            pdfDocument.newPage();
+        }
+        // add dummy paragraph if we aren't at the top of a page, so that
+        // spacingBefore will be taken into account by ColumnText
+        if (pdfDocument.getCurrentHeight() > 0 || isSkipFirstHeader()) {
+            Paragraph p = new Paragraph();
+            p.setLeading(0);
+            ct.addElement(p);
+        }
+        ct.addElement(this);
+        boolean he = isHeadersInEvent();
+        setHeadersInEvent(true);
+        int loop = 0;
+        while (true) {
+            ct.setSimpleColumn(pdfDocument.indentLeft(), pdfDocument.indentBottom(), pdfDocument.indentRight(), pdfDocument.indentTop() - pdfDocument.getCurrentHeight());
+            int status = ct.go();
+            if ((status & ColumnText.NO_MORE_TEXT) != 0) {
+                pdfDocument.getText().moveText(0, ct.getYLine() - pdfDocument.indentTop() + pdfDocument.getCurrentHeight());
+                pdfDocument.setCurrentHeight(pdfDocument.indentTop() - ct.getYLine());
+                break;
+            }
+            if (pdfDocument.indentTop() - pdfDocument.getCurrentHeight() == ct.getYLine())
+                ++loop;
+            else
+                loop = 0;
+            if (loop == 3) {
+                pdfDocument.add(new Paragraph("ERROR: Infinite table loop"));
+                break;
+            }
+            pdfDocument.newPage();
+        }
+        setHeadersInEvent(he);
+    }
+
+    /**
+     * Checks if a <CODE>PdfPTable</CODE> fits the current page of the <CODE>PdfDocument</CODE>.
+     *
+     * @param    margin    a certain margin
+     * @return    <CODE>true</CODE> if the <CODE>PdfPTable</CODE> fits the page, <CODE>false</CODE> otherwise.
+     */
+
+    boolean fitsPage(PdfDocument pdfDocument, float margin) {
+        if (!isLockedWidth()) {
+            float totalWidth = (pdfDocument.indentRight() - pdfDocument.indentLeft()) * getWidthPercentage() / 100;
+            setTotalWidth(totalWidth);
+        }
+        // ensuring that a new line has been started.
+        pdfDocument.ensureNewLine();
+        return getTotalHeight() + ((pdfDocument.getCurrentHeight() > 0) ? spacingBefore() : 0f)
+                <= pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - pdfDocument.indentBottom() - margin;
     }
 }

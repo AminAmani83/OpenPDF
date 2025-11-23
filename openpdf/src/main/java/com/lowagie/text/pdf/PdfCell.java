@@ -650,7 +650,7 @@ public class PdfCell extends Rectangle {
      * @return    <CODE>void</CODE>
      */
 
-    boolean isHeader() {
+    public boolean isHeader() {
         return header;
     }
 
@@ -671,7 +671,7 @@ public class PdfCell extends Rectangle {
      * @return    <CODE>true</CODE> if all the lines are already drawn; <CODE>false</CODE> otherwise.
      */
 
-    boolean mayBeRemoved() {
+    public boolean mayBeRemoved() {
         return (header || (lines.isEmpty() && images.isEmpty()));
     }
 

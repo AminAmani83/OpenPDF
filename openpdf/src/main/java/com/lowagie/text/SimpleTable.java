@@ -361,14 +361,8 @@ public class SimpleTable extends Rectangle implements PdfPTableEvent, TextElemen
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
         PdfPTable ptable = createPdfPTable();
-        if (ptable.size() <= ptable.getHeaderRows())
-            return true; // nothing to do
-
-        // before every table, we add a new line and flush all lines
-        pdfDocument.ensureNewLine();
-        pdfDocument.flushLines();
-        pdfDocument.addPTable(ptable);
-        pdfDocument.setPageEmpty(false);
+        ptable.setAddNewLineAfter(false);
+        ptable.add(pdfDocument);
 
         return true;
     }

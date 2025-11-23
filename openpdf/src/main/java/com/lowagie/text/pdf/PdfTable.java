@@ -93,8 +93,8 @@ public class PdfTable extends Rectangle {
      * @param    top        the start position of the top of the table
      * @since    a parameter of this method has been removed in iText 2.0.8
      */
-    
-    PdfTable(Table table, float left, float right, float top) {
+
+    public PdfTable(Table table, float left, float right, float top) {
         // constructs a Rectangle (the bottom value will be changed afterwards)
         super(left, top, right, top);
         this.table = table;
@@ -221,8 +221,8 @@ public class PdfTable extends Rectangle {
      *
      * @return    an <CODE>ArrayList</CODE>
      */
-    
-    ArrayList<PdfCell> getHeaderCells() {
+
+    public ArrayList<PdfCell> getHeaderCells() {
         return headercells;
     }
     
@@ -241,8 +241,8 @@ public class PdfTable extends Rectangle {
      *
      * @return    an <CODE>ArrayList</CODE>
      */
-    
-    ArrayList<PdfCell> getCells() {
+
+    public ArrayList<PdfCell> getCells() {
         return cells;
     }
     
@@ -251,8 +251,8 @@ public class PdfTable extends Rectangle {
      *
      * @return    the number of columns
      */
-    
-    int columns() {
+
+    public int columns() {
         return columns;
     }
     
@@ -272,7 +272,7 @@ public class PdfTable extends Rectangle {
      * @return    the cellspacing
      */
     
-    final float cellspacing() {
+    public final float cellspacing() {
         return table.getSpacing();
     }
     

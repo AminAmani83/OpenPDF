@@ -51,8 +51,6 @@ package com.lowagie.text.pdf;
 
 import static java.awt.Font.LAYOUT_RIGHT_TO_LEFT;
 
-import com.lowagie.text.Annotation;
-import com.lowagie.text.BadElementException;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -61,14 +59,9 @@ import com.lowagie.text.ExceptionConverter;
 import com.lowagie.text.Font;
 import com.lowagie.text.HeaderFooter;
 import com.lowagie.text.Image;
-import com.lowagie.text.ListItem;
-import com.lowagie.text.MarkedObject;
-import com.lowagie.text.MarkedSection;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
-import com.lowagie.text.Section;
-import com.lowagie.text.SimpleTable;
 import com.lowagie.text.Table;
 import com.lowagie.text.error_messages.MessageLocalization;
 import com.lowagie.text.pdf.collection.PdfCollection;
@@ -357,6 +350,10 @@ public class PdfDocument extends Document {
     /** This is the PdfContentByte object, containing the text. */
     protected PdfContentByte text;
 
+    public PdfContentByte getText() {
+        return text;
+    }
+
     public PdfContentByte getGraphics() {
         return graphics;
     }
@@ -387,6 +384,10 @@ public class PdfDocument extends Document {
 
     public void setAlignment(int alignment) {
         this.alignment = alignment;
+    }
+
+    public int getAlignment() {
+        return alignment;
     }
 
     /** This represents the current alignment of the PDF Elements. */
@@ -900,7 +901,7 @@ public class PdfDocument extends Document {
         // if there is an image waiting to be drawn, draw it
         try {
             if (imageWait != null) {
-                add(imageWait);
+                imageWait.add(this);
                 imageWait = null;
             }
         }
@@ -931,11 +932,15 @@ public class PdfDocument extends Document {
     /** The lines that are written until now. */
     protected java.util.List<PdfLine> lines = new ArrayList<>();
 
+    public void setLines(List<PdfLine> lines) {
+        this.lines = lines;
+    }
+
     /**
      * Adds the current line to the list of lines and also adds an empty line.
      * @throws DocumentException on error
      */
-    protected void newLine() throws DocumentException {
+    public void newLine() throws DocumentException {
         lastElementType = -1;
         carriageReturn();
         if (lines != null && !lines.isEmpty()) {
@@ -1469,7 +1474,7 @@ public class PdfDocument extends Document {
         public float listIndentLeft = 0;
 
         /** This is the indentation caused by an image on the left. */
-        float imageIndentLeft = 0;
+        public float imageIndentLeft = 0;
 
         /** This represents the current indentation of the PDF Elements on the right side. */
         public float indentRight = 0;
@@ -1478,10 +1483,10 @@ public class PdfDocument extends Document {
         public float sectionIndentRight = 0;
 
         /** This is the indentation caused by an image on the right. */
-        float imageIndentRight = 0;
+        public float imageIndentRight = 0;
 
         /** This represents the current indentation of the PDF Elements on the top side. */
-        float indentTop = 0;
+        public float indentTop = 0;
 
         /** This represents the current indentation of the PDF Elements on the bottom side. */
         float indentBottom = 0;
@@ -2127,7 +2132,7 @@ public class PdfDocument extends Document {
      * @return Value of property strictImageSequence.
      *
      */
-    boolean isStrictImageSequence() {
+    public boolean isStrictImageSequence() {
         return this.strictImageSequence;
     }
 
@@ -2141,6 +2146,14 @@ public class PdfDocument extends Document {
 
     /** This is the position where the image ends. */
     protected float imageEnd = -1;
+
+    public float getImageEnd() {
+        return imageEnd;
+    }
+
+    public void setImageEnd(float imageEnd) {
+        this.imageEnd = imageEnd;
+    }
 
     /**
      * Method added by Pelikan Stephan
@@ -2159,638 +2172,12 @@ public class PdfDocument extends Document {
     /** This is the image that could not be shown on a previous page. */
     protected Image imageWait = null;
 
-    /**
-     * Adds an image to the document.
-     * @param image the <CODE>Image</CODE> to add
-     * @throws PdfException on error
-     * @throws DocumentException on error
-     */
-
-    public void add(Image image) throws DocumentException {
-
-        if (image.hasAbsoluteY()) {
-            graphics.addImage(image);
-            pageEmpty = false;
-            return;
-        }
-
-        // if there isn't enough room for the image on this page, save it for the next page
-        if (currentHeight != 0 && indentTop() - currentHeight - image.getScaledHeight() < indentBottom()) {
-            if (!strictImageSequence && imageWait == null) {
-                imageWait = image;
-                return;
-            }
-            newPage();
-            if (currentHeight != 0 && indentTop() - currentHeight - image.getScaledHeight() < indentBottom()) {
-                imageWait = image;
-                return;
-            }
-        }
-        pageEmpty = false;
-        // avoid endless loops
-        if (image == imageWait)
-            imageWait = null;
-        boolean textwrap = (image.getAlignment() & Image.TEXTWRAP) == Image.TEXTWRAP
-        && !((image.getAlignment() & Image.MIDDLE) == Image.MIDDLE);
-        boolean underlying = (image.getAlignment() & Image.UNDERLYING) == Image.UNDERLYING;
-        float diff = leading / 2;
-        if (textwrap) {
-            diff += leading;
-        }
-        float lowerleft = indentTop() - currentHeight - image.getScaledHeight() -diff;
-        float[] mt = image.matrix();
-        float startPosition = indentLeft() - mt[4];
-        if ((image.getAlignment() & Image.RIGHT) == Image.RIGHT) startPosition = indentRight() - image.getScaledWidth() - mt[4];
-        if ((image.getAlignment() & Image.MIDDLE) == Image.MIDDLE) startPosition = indentLeft() + ((indentRight() - indentLeft() - image.getScaledWidth()) / 2) - mt[4];
-        if (image.hasAbsoluteX()) startPosition = image.getAbsoluteX();
-        if (textwrap) {
-            if (imageEnd < 0 || imageEnd < currentHeight + image.getScaledHeight() + diff) {
-                imageEnd = currentHeight + image.getScaledHeight() + diff;
-            }
-            if ((image.getAlignment() & Image.RIGHT) == Image.RIGHT) {
-                // indentation suggested by Pelikan Stephan
-                indentation.imageIndentRight += image.getScaledWidth() + image.getIndentationLeft();
-            }
-            else {
-                // indentation suggested by Pelikan Stephan
-                indentation.imageIndentLeft += image.getScaledWidth() + image.getIndentationRight();
-            }
-        }
-        else {
-            if ((image.getAlignment() & Image.RIGHT) == Image.RIGHT) startPosition -= image.getIndentationRight();
-            else if ((image.getAlignment() & Image.MIDDLE) == Image.MIDDLE) startPosition += image.getIndentationLeft() - image.getIndentationRight();
-            else startPosition += image.getIndentationLeft();
-        }
-        graphics.addImage(image, mt[0], mt[1], mt[2], mt[3], startPosition, lowerleft - mt[5]);
-        if (!(textwrap || underlying)) {
-            currentHeight += image.getScaledHeight() + diff;
-            flushLines();
-            text.moveText(0, - (image.getScaledHeight() + diff));
-            newLine();
-        }
+    public Image getImageWait() {
+        return imageWait;
     }
 
-//    [M4] Adding a PdfPTable
-
-    /** Adds a <CODE>PdfPTable</CODE> to the document.
-     * @param ptable the <CODE>PdfPTable</CODE> to be added to the document.
-     * @throws DocumentException on error
-     */
-    public void addPTable(PdfPTable ptable) throws DocumentException {
-        ColumnText ct = new ColumnText(writer.getDirectContent());
-        // if the table prefers to be on a single page, and it wouldn't
-        //fit on the current page, start a new page.
-        if (ptable.getKeepTogether() && !fitsPage(ptable, 0f) && currentHeight > 0)  {
-            newPage();
-        }
-        // add dummy paragraph if we aren't at the top of a page, so that
-        // spacingBefore will be taken into account by ColumnText
-        if (currentHeight > 0 || ptable.isSkipFirstHeader()) {
-            Paragraph p = new Paragraph();
-            p.setLeading(0);
-            ct.addElement(p);
-        }
-        ct.addElement(ptable);
-        boolean he = ptable.isHeadersInEvent();
-        ptable.setHeadersInEvent(true);
-        int loop = 0;
-        while (true) {
-            ct.setSimpleColumn(indentLeft(), indentBottom(), indentRight(), indentTop() - currentHeight);
-            int status = ct.go();
-            if ((status & ColumnText.NO_MORE_TEXT) != 0) {
-                text.moveText(0, ct.getYLine() - indentTop() + currentHeight);
-                currentHeight = indentTop() - ct.getYLine();
-                break;
-            }
-            if (indentTop() - currentHeight == ct.getYLine())
-                ++loop;
-            else
-                loop = 0;
-            if (loop == 3) {
-                add(new Paragraph("ERROR: Infinite table loop"));
-                break;
-            }
-            newPage();
-        }
-        ptable.setHeadersInEvent(he);
-    }
-
-    /**
-     * Checks if a <CODE>PdfPTable</CODE> fits the current page of the <CODE>PdfDocument</CODE>.
-     *
-     * @param    table    the table that has to be checked
-     * @param    margin    a certain margin
-     * @return    <CODE>true</CODE> if the <CODE>PdfPTable</CODE> fits the page, <CODE>false</CODE> otherwise.
-     */
-
-    boolean fitsPage(PdfPTable table, float margin) {
-        if (!table.isLockedWidth()) {
-            float totalWidth = (indentRight() - indentLeft()) * table.getWidthPercentage() / 100;
-            table.setTotalWidth(totalWidth);
-        }
-        // ensuring that a new line has been started.
-        ensureNewLine();
-        return table.getTotalHeight() + ((currentHeight > 0) ? table.spacingBefore() : 0f)
-            <= indentTop() - currentHeight - indentBottom() - margin;
-    }
-
-//    [M4'] Adding a Table
-
-    /**
-     * This is a helper class for adding a Table to a document.
-     * @since    2.0.8 (PdfDocument was package-private before)
-     */
-    protected static class RenderingContext {
-        float pagetop = -1;
-        float oldHeight = -1;
-
-        PdfContentByte cellGraphics = null;
-
-        float lostTableBottom;
-
-        float maxCellBottom;
-        float maxCellHeight;
-
-        Map<PdfCell, Integer> rowspanMap = new HashMap<>();
-
-        // Possible keys and values are Set or Integer. Really?
-        Map<PdfCell, Integer> pageMap = new HashMap<>();
-        Map<Integer, Set<PdfCell>> pageCellSetMap = new HashMap<>();
-
-        /**
-         * A PdfPTable
-         */
-        public PdfTable table;
-
-        /**
-         * Consumes the rowspan
-         * @param c pdf cell
-         * @return a rowspan.
-         */
-        public int consumeRowspan(PdfCell c) {
-            if (c.rowspan() == 1) {
-                return 1;
-            }
-
-            Integer i = rowspanMap.get(c);
-            if (i == null) {
-                i = c.rowspan();
-            }
-
-            i = i - 1;
-            rowspanMap.put(c, i);
-
-            if (i < 1) {
-                return 1;
-            }
-            return i;
-        }
-
-        /**
-         * Looks at the current rowspan.
-         * @param c cell
-         * @return the current rowspan
-         */
-        public int currentRowspan(PdfCell c) {
-            Integer i = rowspanMap.get(c);
-            if (i == null) {
-                return c.rowspan();
-            } else {
-                return i;
-            }
-        }
-
-        public int cellRendered(PdfCell cell, int pageNumber) {
-            Integer i = pageMap.get(cell);
-            if (i == null) {
-                i = 1;
-            } else {
-                i = i + 1;
-            }
-            pageMap.put(cell, i);
-
-            Integer pageInteger = pageNumber;
-            Set<PdfCell> set = pageCellSetMap.computeIfAbsent(pageInteger, k -> new HashSet<>());
-            set.add(cell);
-
-            return i;
-        }
-
-        public int numCellRendered(PdfCell cell) {
-            Integer i = pageMap.get(cell);
-            if (i == null) {
-                i = 0;
-            }
-            return i;
-        }
-
-        public boolean isCellRenderedOnPage(PdfCell cell, int pageNumber) {
-            Integer pageInteger = pageNumber;
-            Set<PdfCell> set = pageCellSetMap.get(pageInteger);
-
-            if (set != null) {
-                return set.contains(cell);
-            }
-
-            return false;
-        }
-    }
-
-    /**
-     * Adds a new table to the document.
-     * @param t                Table to add.  Rendered rows will be deleted after processing.
-     * @throws DocumentException
-     * @since    iText 2.0.8
-     */
-    public void addPdfTable(Table t) throws DocumentException {
-        // before every table, we flush all lines
-        flushLines();
-
-        PdfTable table = new PdfTable(t, indentLeft(), indentRight(), indentTop() - currentHeight);
-        RenderingContext ctx = new RenderingContext();
-        ctx.pagetop = indentTop();
-        ctx.oldHeight = currentHeight;
-        ctx.cellGraphics = new PdfContentByte(writer);
-        ctx.rowspanMap = new HashMap<>();
-        ctx.table = table;
-
-        // initialization of parameters
-        PdfCell cell;
-
-        // drawing the table
-        java.util.List<PdfCell> headerCells = table.getHeaderCells();
-        java.util.List<PdfCell> cells = table.getCells();
-        java.util.List<java.util.List<PdfCell>> rows = extractRows(cells, ctx);
-        boolean isContinue = false;
-        while (!cells.isEmpty()) {
-            // initialization of some extra parameters;
-            ctx.lostTableBottom = 0;
-
-            // loop over the cells
-            boolean cellsShown = false;
-
-            // draw the cells (line by line)
-            Iterator<java.util.List<PdfCell>> iterator = rows.iterator();
-
-            boolean atLeastOneFits = false;
-            while (iterator.hasNext()) {
-                java.util.List<PdfCell> row = iterator.next();
-                analyzeRow(rows, ctx);
-                renderCells(ctx, row, table.hasToFitPageCells() & atLeastOneFits);
-
-                if (!mayBeRemoved(row)) {
-                    break;
-                }
-                consumeRowspan(row, ctx);
-                iterator.remove();
-                atLeastOneFits = true;
-            }
-
-//          compose cells array list for subsequent code
-            cells.clear();
-            Set<PdfCell> opt = new HashSet<>();
-            iterator = rows.iterator();
-            while (iterator.hasNext()) {
-                ArrayList row = (ArrayList) iterator.next();
-
-                for (Object o : row) {
-                    cell = (PdfCell) o;
-
-                    if (!opt.contains(cell)) {
-                        cells.add(cell);
-                        opt.add(cell);
-                    }
-                }
-            }
-
-            // we paint the graphics of the table after looping through all the cells
-            Rectangle tablerec = new Rectangle(table);
-            tablerec.setBorder(table.getBorder());
-            tablerec.setBorderWidth(table.getBorderWidth());
-            tablerec.setBorderColor(table.getBorderColor());
-            tablerec.setBackgroundColor(table.getBackgroundColor());
-            PdfContentByte under = writer.getDirectContentUnder();
-            under.rectangle(tablerec.rectangle(top(), indentBottom()));
-            under.add(ctx.cellGraphics);
-            // bugfix by Gerald Fehringer: now again add the border for the table
-            // since it might have been covered by cell backgrounds
-            tablerec.setBackgroundColor(null);
-            tablerec = tablerec.rectangle(top(), indentBottom());
-            tablerec.setBorder(table.getBorder());
-            under.rectangle(tablerec);
-            // end bugfix
-
-            ctx.cellGraphics = new PdfContentByte(null);
-            // if the table continues on the next page
-
-            if (!rows.isEmpty()) {
-                isContinue = true;
-                graphics.setLineWidth(table.getBorderWidth());
-                if (cellsShown && (table.getBorder() & Rectangle.BOTTOM) == Rectangle.BOTTOM) {
-                    // Draw the bottom line
-
-                    // the color is set to the color of the element
-                    Color tColor = table.getBorderColor();
-                    if (tColor != null) {
-                        graphics.setColorStroke(tColor);
-                    }
-                    graphics.moveTo(table.getLeft(), Math.max(table.getBottom(), indentBottom()));
-                    graphics.lineTo(table.getRight(), Math.max(table.getBottom(), indentBottom()));
-                    graphics.stroke();
-                    if (tColor != null) {
-                        graphics.resetRGBColorStroke();
-                    }
-                }
-
-                // old page
-                pageEmpty = false;
-                float difference = ctx.lostTableBottom;
-
-                // new page
-                newPage();
-
-                // G.F.: if something added in page event i.e. currentHeight > 0
-                float heightCorrection = 0;
-                boolean somethingAdded = false;
-                if (currentHeight > 0) {
-                    heightCorrection = 6;
-                    currentHeight += heightCorrection;
-                    somethingAdded = true;
-                    newLine();
-                    flushLines();
-                    indentation.indentTop = currentHeight - leading;
-                    currentHeight = 0;
-                }
-                else {
-                    flushLines();
-                }
-
-                // this part repeats the table headers (if any)
-                int size = headerCells.size();
-                if (size > 0) {
-                    // this is the top of the headersection
-                    cell = headerCells.get(0);
-                    float oldTop = cell.getTop(0);
-                    // loop over all the cells of the table header
-                    for (int i = 0; i < size; i++) {
-                        cell = headerCells.get(i);
-                        // calculation of the new cellpositions
-                        cell.setTop(indentTop() - oldTop + cell.getTop(0));
-                        cell.setBottom(indentTop() - oldTop + cell.getBottom(0));
-                        ctx.pagetop = cell.getBottom();
-                        // we paint the borders of the cell
-                        ctx.cellGraphics.rectangle(cell.rectangle(indentTop(), indentBottom()));
-                        // we write the text of the cell
-                        java.util.List<Image> images = cell.getImages(indentTop(), indentBottom());
-                        for (Object image1 : images) {
-                            cellsShown = true;
-                            Image image = (Image) image1;
-                            graphics.addImage(image);
-                        }
-                        lines = cell.getLines(indentTop(), indentBottom());
-                        float cellTop = cell.getTop(indentTop());
-                        text.moveText(0, cellTop - heightCorrection);
-                        float cellDisplacement = flushLines() - cellTop + heightCorrection;
-                        text.moveText(0, cellDisplacement);
-                    }
-
-                    currentHeight = indentTop() - ctx.pagetop + table.cellspacing();
-                    text.moveText(0, ctx.pagetop - indentTop() - currentHeight);
-                }
-                else {
-                    if (somethingAdded) {
-                        ctx.pagetop = indentTop();
-                        text.moveText(0, -table.cellspacing());
-                    }
-                }
-                ctx.oldHeight = currentHeight - heightCorrection;
-
-                // calculating the new positions of the table and the cells
-                size = Math.min(cells.size(), table.columns());
-                int i = 0;
-                while (i < size) {
-                    cell = cells.get(i);
-                    if (cell.getTop(-table.cellspacing()) > ctx.lostTableBottom) {
-                        float newBottom = ctx.pagetop - difference + cell.getBottom();
-                        float neededHeight = cell.remainingHeight();
-                        if (newBottom > ctx.pagetop - neededHeight) {
-                            difference += newBottom - (ctx.pagetop - neededHeight);
-                        }
-                    }
-                    i++;
-                }
-                size = cells.size();
-                table.setTop(indentTop());
-                table.setBottom(ctx.pagetop - difference + table.getBottom(table.cellspacing()));
-                for (i = 0; i < size; i++) {
-                    cell = cells.get(i);
-                    float newBottom = ctx.pagetop - difference + cell.getBottom();
-                    float newTop = ctx.pagetop - difference + cell.getTop(-table.cellspacing());
-                    if (newTop > indentTop() - currentHeight) {
-                        newTop = indentTop() - currentHeight;
-                    }
-
-                    cell.setTop(newTop );
-                    cell.setBottom(newBottom );
-                }
-            }
-        }
-
-        float tableHeight = table.getTop() - table.getBottom();
-        // bugfix by Adauto Martins when have more than two tables and more than one page
-        // If continuation of table in other page (bug report #1460051)
-        if (isContinue) {
-            currentHeight = tableHeight;
-            text.moveText(0, -(tableHeight - (ctx.oldHeight * 2)));
-        } else {
-            currentHeight = ctx.oldHeight + tableHeight;
-            text.moveText(0, -tableHeight);
-        }
-        // end bugfix
-        pageEmpty = false;
-    }
-
-    protected void analyzeRow(java.util.List<java.util.List<PdfCell>> rows, RenderingContext ctx) {
-        ctx.maxCellBottom = indentBottom();
-
-        // determine whether row(index) is in a rowspan
-        int rowIndex = 0;
-
-        java.util.List<PdfCell> row = rows.get(rowIndex);
-        int maxRowspan = 1;
-        Iterator<PdfCell> iterator = row.iterator();
-        while (iterator.hasNext()) {
-            PdfCell cell = iterator.next();
-            maxRowspan = Math.max(ctx.currentRowspan(cell), maxRowspan);
-        }
-        rowIndex += maxRowspan;
-
-        boolean useTop = true;
-        if (rowIndex == rows.size()) {
-            rowIndex = rows.size() - 1;
-            useTop = false;
-        }
-
-        if (rowIndex < 0 || rowIndex >= rows.size()) return;
-
-        row = rows.get(rowIndex);
-        iterator = row.iterator();
-        while (iterator.hasNext()) {
-            PdfCell cell = iterator.next();
-            Rectangle cellRect = cell.rectangle(ctx.pagetop, indentBottom());
-            if (useTop) {
-                ctx.maxCellBottom = Math.max(ctx.maxCellBottom, cellRect.getTop());
-            } else {
-                if (ctx.currentRowspan(cell) == 1) {
-                    ctx.maxCellBottom = Math.max(ctx.maxCellBottom, cellRect.getBottom());
-                }
-            }
-        }
-    }
-
-    protected boolean mayBeRemoved(java.util.List<PdfCell> row) {
-        Iterator<PdfCell> iterator = row.iterator();
-        boolean mayBeRemoved = true;
-        while (iterator.hasNext()) {
-            PdfCell cell = iterator.next();
-
-            mayBeRemoved &= cell.mayBeRemoved();
-        }
-        return mayBeRemoved;
-    }
-
-    protected void consumeRowspan(java.util.List<PdfCell> row, RenderingContext ctx) {
-        for (PdfCell c : row) {
-            ctx.consumeRowspan(c);
-        }
-    }
-
-    protected java.util.List<java.util.List<PdfCell>> extractRows(java.util.List<PdfCell> cells, RenderingContext ctx) {
-        PdfCell cell;
-        PdfCell previousCell = null;
-        java.util.List<java.util.List<PdfCell>> rows = new ArrayList<>();
-        java.util.List<PdfCell> rowCells = new ArrayList<>();
-
-        Iterator<PdfCell> iterator = cells.iterator();
-        while (iterator.hasNext()) {
-            cell = iterator.next();
-
-            boolean isAdded = false;
-
-            boolean isEndOfRow = !iterator.hasNext();
-            boolean isCurrentCellPartOfRow = !iterator.hasNext();
-
-            if (previousCell != null) {
-                if (cell.getLeft() <= previousCell.getLeft()) {
-                    isEndOfRow = true;
-                    isCurrentCellPartOfRow = false;
-                }
-            }
-
-            if (isCurrentCellPartOfRow) {
-                rowCells.add(cell);
-                isAdded = true;
-            }
-
-            if (isEndOfRow) {
-                if (!rowCells.isEmpty()) {
-                    rows.add(rowCells);
-                }
-
-                // start a new list for next line
-                rowCells = new ArrayList<>();
-            }
-
-            if (!isAdded) {
-                rowCells.add(cell);
-            }
-
-            previousCell = cell;
-        }
-
-        if (!rowCells.isEmpty()) {
-            rows.add(rowCells);
-        }
-
-        // fill row information with rowspan cells to get complete "scan lines"
-        for (int i = rows.size() - 1; i >= 0; i--) {
-            java.util.List<PdfCell> row = rows.get(i);
-            // iterator through row
-            for (int j = 0; j < row.size(); j++) {
-                PdfCell c = row.get(j);
-                int rowspan = c.rowspan();
-                // fill in missing rowspan cells to complete "scan line"
-                for (int k = 1; k < rowspan && rows.size() < i+k; k++) {
-                    java.util.List<PdfCell> spannedRow = rows.get(i + k);
-                    if (spannedRow.size() > j)
-                        spannedRow.add(j, c);
-                }
-            }
-        }
-
-        return rows;
-    }
-
-    protected void renderCells(RenderingContext ctx, java.util.List cells, boolean hasToFit) throws DocumentException {
-        PdfCell cell;
-        Iterator iterator;
-        if (hasToFit) {
-            iterator = cells.iterator();
-            while (iterator.hasNext()) {
-                cell = (PdfCell) iterator.next();
-                if (!cell.isHeader()) {
-                    if (cell.getBottom() < indentBottom()) return;
-                }
-            }
-        }
-        iterator = cells.iterator();
-
-        while (iterator.hasNext()) {
-            cell = (PdfCell) iterator.next();
-            if (!ctx.isCellRenderedOnPage(cell, getPageNumber())) {
-
-                float correction = 0;
-                if (ctx.numCellRendered(cell) >= 1) {
-                    correction = 1.0f;
-                }
-
-                lines = cell.getLines(ctx.pagetop, indentBottom() - correction);
-
-                // if there is still text to render we render it
-                if (lines != null && !lines.isEmpty()) {
-                    // we write the text
-                    float cellTop = cell.getTop(ctx.pagetop - ctx.oldHeight);
-                    text.moveText(0, cellTop);
-                    float cellDisplacement = flushLines() - cellTop;
-
-                    text.moveText(0, cellDisplacement);
-                    if (ctx.oldHeight + cellDisplacement > currentHeight) {
-                        currentHeight = ctx.oldHeight + cellDisplacement;
-                    }
-
-                    ctx.cellRendered(cell, getPageNumber());
-                }
-                float indentBottom = Math.max(cell.getBottom(), indentBottom());
-                Rectangle tableRect = ctx.table.rectangle(ctx.pagetop, indentBottom());
-                indentBottom = Math.max(tableRect.getBottom(), indentBottom);
-
-                // we paint the borders of the cells
-                Rectangle cellRect = cell.rectangle(tableRect.getTop(), indentBottom);
-                 //cellRect.setBottom(cellRect.bottom());
-                if (cellRect.getHeight() > 0) {
-                    ctx.lostTableBottom = indentBottom;
-                    ctx.cellGraphics.rectangle(cellRect);
-                }
-
-                // and additional graphics
-                java.util.List<Image> images = cell.getImages(ctx.pagetop, indentBottom());
-                for (Object image1 : images) {
-                    Image image = (Image) image1;
-                    graphics.addImage(image);
-                }
-
-            }
-        }
+    public void setImageWait(Image imageWait) {
+        this.imageWait = imageWait;
     }
 
     /**

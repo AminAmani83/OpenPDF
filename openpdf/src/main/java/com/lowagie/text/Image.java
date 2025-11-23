@@ -1981,7 +1981,66 @@ public abstract class Image extends Rectangle {
     @Override
     public boolean add(PdfDocument pdfDocument) throws DocumentException {
         //carriageReturn(); suggestion by Marc Campforts
-        pdfDocument.add(this);
+        if (hasAbsoluteY()) {
+            pdfDocument.getGraphics().addImage(this);
+            pdfDocument.setPageEmpty(false);
+            return true;
+        }
+
+        // if there isn't enough room for the image on this page, save it for the next page
+        if (pdfDocument.getCurrentHeight() != 0 && pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - getScaledHeight() < pdfDocument.indentBottom()) {
+            if (!pdfDocument.isStrictImageSequence() && pdfDocument.getImageWait() == null) {
+                pdfDocument.setImageWait(this);
+                return true;
+            }
+            pdfDocument.newPage();
+            if (pdfDocument.getCurrentHeight() != 0 && pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - getScaledHeight() < pdfDocument.indentBottom()) {
+                pdfDocument.setImageWait(this);
+                return true;
+            }
+        }
+        pdfDocument.setPageEmpty(false);
+        // avoid endless loops
+        if (this == pdfDocument.getImageWait())
+            pdfDocument.setImageWait(null);
+        boolean textwrap = (getAlignment() & Image.TEXTWRAP) == Image.TEXTWRAP
+                && !((getAlignment() & Image.MIDDLE) == Image.MIDDLE);
+        boolean underlying = (getAlignment() & Image.UNDERLYING) == Image.UNDERLYING;
+        float diff = pdfDocument.getLeading() / 2;
+        if (textwrap) {
+            diff += pdfDocument.getLeading();
+        }
+        float lowerleft = pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - getScaledHeight() -diff;
+        float[] mt = matrix();
+        float startPosition = pdfDocument.indentLeft() - mt[4];
+        if ((getAlignment() & Image.RIGHT) == Image.RIGHT) startPosition = pdfDocument.indentRight() - getScaledWidth() - mt[4];
+        if ((getAlignment() & Image.MIDDLE) == Image.MIDDLE) startPosition = pdfDocument.indentLeft() + ((pdfDocument.indentRight() - pdfDocument.indentLeft() - getScaledWidth()) / 2) - mt[4];
+        if (hasAbsoluteX()) startPosition = getAbsoluteX();
+        if (textwrap) {
+            if (pdfDocument.getImageEnd() < 0 || pdfDocument.getImageEnd() < pdfDocument.getCurrentHeight() + getScaledHeight() + diff) {
+                pdfDocument.setImageEnd(pdfDocument.getCurrentHeight() + getScaledHeight() + diff);
+            }
+            if ((getAlignment() & Image.RIGHT) == Image.RIGHT) {
+                // indentation suggested by Pelikan Stephan
+                pdfDocument.getIndentation().imageIndentRight += getScaledWidth() + getIndentationLeft();
+            }
+            else {
+                // indentation suggested by Pelikan Stephan
+                pdfDocument.getIndentation().imageIndentLeft += getScaledWidth() + getIndentationRight();
+            }
+        }
+        else {
+            if ((getAlignment() & Image.RIGHT) == Image.RIGHT) startPosition -= getIndentationRight();
+            else if ((getAlignment() & Image.MIDDLE) == Image.MIDDLE) startPosition += getIndentationLeft() - getIndentationRight();
+            else startPosition += getIndentationLeft();
+        }
+        pdfDocument.getGraphics().addImage(this, mt[0], mt[1], mt[2], mt[3], startPosition, lowerleft - mt[5]);
+        if (!(textwrap || underlying)) {
+            pdfDocument.setCurrentHeight(pdfDocument.getCurrentHeight() + getScaledHeight() + diff);
+            pdfDocument.flushLines();
+            pdfDocument.getText().moveText(0, - (getScaledHeight() + diff));
+            pdfDocument.newLine();
+        }
 
         return true;
     }
