@@ -349,5 +349,12 @@ public interface Element {
 
     String toString();
 
+    /**
+     * Signals that this <CODE>Element</CODE> was added to the <CODE>Document</CODE>.
+     *
+     * @param pdfDocument the document where this element is to be added
+     * @return <CODE>true</CODE> if the element was added, <CODE>false</CODE> if not.
+     * @throws DocumentException when a document isn't open yet, or has been closed
+     */
     boolean add(PdfDocument pdfDocument) throws DocumentException;
 }
