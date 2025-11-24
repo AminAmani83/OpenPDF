@@ -72,6 +72,17 @@ public class Rectangle implements Element {
 
   // CONSTANTS:
 
+  /** the offset relative to a certain top. */
+  protected float relativeTop;
+
+  public float getRelativeTop() {
+    return relativeTop;
+  }
+
+  public void setRelativeTop(float relativeTop) {
+    this.relativeTop = relativeTop;
+  }
+
   /** This is the value that will be used as <VAR>undefined </VAR>. */
   public static final int UNDEFINED = -1;
 

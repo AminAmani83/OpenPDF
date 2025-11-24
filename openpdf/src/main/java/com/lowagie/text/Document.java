@@ -199,7 +199,11 @@ public class Document implements AutoCloseable, DocListener {
     
     /** This is the textual part of the footer */
     protected HeaderFooter footer = null;
-    
+
+    public HeaderFooter getFooter() {
+        return footer;
+    }
+
     /** This is a chapter number in case ChapterAutoNumber is used. */
     protected int chapternumber = 0;
 

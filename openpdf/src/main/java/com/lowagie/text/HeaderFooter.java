@@ -50,7 +50,8 @@
 package com.lowagie.text;
 
 
-import com.lowagie.text.pdf.PdfDocument;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A <CODE>HeaderFooter</CODE>-object is a <CODE>Rectangle</CODe> with text
@@ -68,8 +69,48 @@ import com.lowagie.text.pdf.PdfDocument;
 public class HeaderFooter extends Rectangle {
     
     // membervariables
-    
-/** Does the page contain a pagenumber? */
+
+/** This is the <CODE>List</CODE> containing non-text <CODE>Element</CODE>. */
+    private java.util.List<SpecialElement> specialContent;
+
+/**  This is the padding of height of header/footer. */
+    private float padding;
+
+    public float getPadding() {
+        return padding;
+    }
+
+    public void setPadding(float padding) {
+        this.padding = padding;
+    }
+
+    /**
+     * Increases current padding by adding new value into it
+     *
+     * @param augment the new value
+     */
+    public void addPadding(float augment){
+        padding += augment;
+    }
+
+    public List<SpecialElement> getSpecialContent() {
+        return specialContent;
+    }
+
+    /**
+     * Adds non-text <CODE>Element</CODE> into <CODE>specialContent</CODE>
+     *
+     * @param element the new non-text <CODE>Element</CODE>
+     */
+    public void addSpecialContent(SpecialElement element){
+        if (specialContent == null){
+            specialContent = new ArrayList<>();
+        }
+        specialContent.add(element);
+    }
+
+
+    /** Does the page contain a pagenumber? */
     private boolean numbered;
     
 /** This is the <CODE>Phrase</CODE> that comes before the pagenumber. */
@@ -211,6 +252,7 @@ public class HeaderFooter extends Rectangle {
         if (before != null) {
             paragraph = new Paragraph(before.getLeading());
             paragraph.add(before);
+            paragraph.remove(paragraph.size() - 1);
         } else {
             paragraph = new Paragraph();
         }

@@ -67,7 +67,7 @@ import com.lowagie.text.pdf.events.PdfPTableEventForwarder;
  * @author Paulo Soares (psoares@consiste.pt)
  */
 
-public class PdfPTable implements LargeElement{
+public class PdfPTable implements LargeElement, SpecialElement{
     
     /**
      * The index of the original <CODE>PdfcontentByte</CODE>.
@@ -1611,13 +1611,17 @@ public class PdfPTable implements LargeElement{
         if (size() <= getHeaderRows())
             return true; //nothing to do
 
-        // before every table, we add a new line and flush all lines
-        pdfDocument.ensureNewLine();
-        pdfDocument.flushLines();
-        addPtable(pdfDocument);
-        pdfDocument.setPageEmpty(false);
-        if (isAddNewLineAfter)
-            pdfDocument.newLine();
+        if (pdfDocument.isDoFooter()) {
+            addDelayPtable(pdfDocument);
+        } else {
+            // before every table, we add a new line and flush all lines
+            pdfDocument.ensureNewLine();
+            pdfDocument.flushLines();
+            addPtable(pdfDocument);
+            pdfDocument.setPageEmpty(false);
+            if (isAddNewLineAfter)
+                pdfDocument.newLine();
+        }
 
         return true;
     }
@@ -1662,6 +1666,24 @@ public class PdfPTable implements LargeElement{
     }
 
     /**
+     * Occupies space for <CODE>PdfPTable</CODE> that will be added later instead of now
+     */
+    protected void addDelayPtable(PdfDocument pdfDocument) {
+        setTableWidth(pdfDocument);
+        final float footerPadding = getTotalHeight() - (0.75f * pdfDocument.getLeading());
+
+        pdfDocument.getFooter().addSpecialContent(this);
+        pdfDocument.getFooter().addPadding(footerPadding);
+    }
+
+    private void setTableWidth(PdfDocument pdfDocument) {
+        if (!isLockedWidth()) {
+            float totalWidth = (pdfDocument.indentRight() - pdfDocument.indentLeft()) * getWidthPercentage() / 100;
+            setTotalWidth(totalWidth);
+        }
+    }
+
+    /**
      * Checks if a <CODE>PdfPTable</CODE> fits the current page of the <CODE>PdfDocument</CODE>.
      *
      * @param    margin    a certain margin
@@ -1677,5 +1699,14 @@ public class PdfPTable implements LargeElement{
         pdfDocument.ensureNewLine();
         return getTotalHeight() + ((pdfDocument.getCurrentHeight() > 0) ? spacingBefore() : 0f)
                 <= pdfDocument.indentTop() - pdfDocument.getCurrentHeight() - pdfDocument.indentBottom() - margin;
+    }
+
+    @Override
+    public void flushSpecial(PdfDocument pdfDocument) {
+        ColumnText ct = new ColumnText(pdfDocument.getWriter().getDirectContent());
+        ct.addElement(this);
+
+        ct.setSimpleColumn(pdfDocument.indentLeft(), pdfDocument.getFooter().getBottom(), pdfDocument.indentRight(), pdfDocument.getFooter().getTop());
+        ct.go();
     }
 }

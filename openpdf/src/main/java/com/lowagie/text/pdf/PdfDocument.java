@@ -51,18 +51,7 @@ package com.lowagie.text.pdf;
 
 import static java.awt.Font.LAYOUT_RIGHT_TO_LEFT;
 
-import com.lowagie.text.Chunk;
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Element;
-import com.lowagie.text.ExceptionConverter;
-import com.lowagie.text.Font;
-import com.lowagie.text.HeaderFooter;
-import com.lowagie.text.Image;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.Table;
+import com.lowagie.text.*;
 import com.lowagie.text.error_messages.MessageLocalization;
 import com.lowagie.text.pdf.collection.PdfCollection;
 import com.lowagie.text.pdf.draw.DrawInterface;
@@ -72,6 +61,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
 
 
 /**
@@ -1069,6 +1059,19 @@ public class PdfDocument extends Document {
         }
         lines = new ArrayList<>();
         return displacement;
+    }
+
+    /**
+     * write non-text <CODE>Element</CODE> into document
+     */
+    protected void flushSpecial() {
+        if (footer.getSpecialContent() == null) {
+            return;
+        }
+        for (SpecialElement element : footer.getSpecialContent()) {
+            element.flushSpecial(this);
+        }
+        footer.setPadding(0);
     }
 
     /** The characters to be applied the hanging punctuation. */
@@ -2193,8 +2196,16 @@ public class PdfDocument extends Document {
     }
 
 //    [M5] header/footer
+    /** This is the flag meaning whether document is creating footer. */
+    private boolean isDoFooter = false;
+
+    public boolean isDoFooter() {
+        return isDoFooter;
+    }
+
     protected void doFooter() throws DocumentException {
         if (footer == null) return;
+        isDoFooter = true;
         // Begin added by Edgar Leonardo Prieto Perilla
         // Avoid footer indentation
         float tmpIndentLeft = indentation.indentLeft;
@@ -2220,11 +2231,12 @@ public class PdfDocument extends Document {
         text.moveText(left(), indentBottom());
         flushLines();
         text.moveText(-left(), -bottom());
-        footer.setTop(bottom(currentHeight));
+        footer.setTop(bottom(Math.max(footer.getPadding(), currentHeight)));
         footer.setBottom(bottom() - (0.75f * leading));
         footer.setLeft(left());
         footer.setRight(right());
         graphics.rectangle(footer);
+        flushSpecial();
         indentation.indentBottom = currentHeight + leading * 2;
         currentHeight = 0;
         // Begin added by Edgar Leonardo Prieto Perilla
@@ -2236,6 +2248,7 @@ public class PdfDocument extends Document {
         indentation.imageIndentRight = tmpImageIndentRight;
         // End added: Bonf (Marc Schneider) 2003-07-29
         // End added by Edgar Leonardo Prieto Perilla
+        isDoFooter = false;
     }
 
     protected void doHeader() throws DocumentException {
